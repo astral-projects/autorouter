@@ -22,7 +22,6 @@ class JsonServerTestForClassroom {
     private var server: JsonServer? = null
     private val mapper = ObjectMapper()
 
-
     fun makeJsonServer(): Stream<JsonServer> = Stream.of(
         ClassroomController().autorouterReflect().jsonServer(),
         ClassroomController().autorouterDynamic().jsonServer(),
@@ -74,7 +73,8 @@ class JsonServerTestForClassroom {
                 Student(4536, "Isel Maior", 7, 5),
                 Student(5689, "Ever Sad", 7, 3),
             ),
-            actual)
+            actual,
+        )
     }
 
     @ParameterizedTest
@@ -87,7 +87,8 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, object : TypeReference<List<Student>>() {})
         assertContentEquals(
             listOf(Student(4536, "Isel Maior", 7, 5)),
-            actual)
+            actual,
+        )
     }
 
     @ParameterizedTest
@@ -98,7 +99,8 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, Student::class.java)
         assertEquals(
             Student(7777, "Ze Gato", 11, 3),
-            actual)
+            actual,
+        )
     }
 
     @ParameterizedTest
@@ -109,7 +111,8 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, Student::class.java)
         assertEquals(
             Student(4536, "Isel Maior", 7, 5),
-            actual)
+            actual,
+        )
     }
 
     fun URL.put(json: String): String = (this.openConnection() as HttpURLConnection).run {

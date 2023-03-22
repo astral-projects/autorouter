@@ -19,7 +19,7 @@ class ClassroomController {
             Student(9876, "Ole Super", 7, 5),
             Student(4536, "Isel Maior", 7, 5),
             Student(5689, "Ever Sad", 7, 3),
-        )
+        ),
     )
 
     /**
@@ -30,8 +30,11 @@ class ClassroomController {
     fun search(classroom: String, student: String?): Optional<List<Student>> {
         return repo[classroom]
             ?.let {
-                if(student == null) Optional.of(it)
-                else Optional.of(it.filter { st -> st.name.lowercase().contains(student.lowercase()) })
+                if (student == null) {
+                    Optional.of(it)
+                } else {
+                    Optional.of(it.filter { st -> st.name.lowercase().contains(student.lowercase()) })
+                }
             }
             ?: Optional.empty()
     }
@@ -47,19 +50,20 @@ class ClassroomController {
     fun addStudent(
         classroom: String,
         nr: Int,
-        s: Student
+        s: Student,
     ): Optional<Student> {
-        if(nr != s.nr) return Optional.empty() // return 409 instead ?
+        if (nr != s.nr) return Optional.empty() // return 409 instead ?
         val stds = repo[classroom] ?: emptyList()
         repo[classroom] = stds.filter { it.nr != nr } + s
         return Optional.of(s)
     }
+
     /**
      * Example:
      *   curl --request DELETE http://localhost:4000/classroom/i42d/students/4536
      */
     @Synchronized
-    fun removeStudent(classroom: String, nr: Int) : Optional<Student> {
+    fun removeStudent(classroom: String, nr: Int): Optional<Student> {
         val stds = repo[classroom] ?: return Optional.empty()
         val s = stds.firstOrNull { it.nr == nr } ?: return Optional.empty()
         repo[classroom] = stds.filter { it.nr != nr }

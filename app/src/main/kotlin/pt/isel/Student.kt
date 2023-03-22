@@ -6,4 +6,5 @@ data class Student(
     @JsonProperty("nr") val nr: Int,
     @JsonProperty("name") val name: String,
     @JsonProperty("group") val group: Int,
-    @JsonProperty("semester") val semester: Int)
+    @JsonProperty("semester") val semester: Int,
+)

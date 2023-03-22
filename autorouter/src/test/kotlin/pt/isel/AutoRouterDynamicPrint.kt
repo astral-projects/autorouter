@@ -18,7 +18,7 @@ class AutoRouterDynamicPrint {
     fun print_dynamic_handler_to_search() {
         val classMaker = AutoRouterDynamic.buildHandler(
             ClassroomController::class.java,
-            ClassroomController::class.java.declaredMethods.first { it.name == "search" }
+            ClassroomController::class.java.declaredMethods.first { it.name == "search" },
         )
         printBytecodes(classMaker.finishBytes())
     }
@@ -27,7 +27,7 @@ class AutoRouterDynamicPrint {
     fun print_dynamic_handler_to_addStudent() {
         val classMaker = AutoRouterDynamic.buildHandler(
             ClassroomController::class.java,
-            ClassroomController::class.java.declaredMethods.first { it.name == "addStudent" }
+            ClassroomController::class.java.declaredMethods.first { it.name == "addStudent" },
         )
         printBytecodes(classMaker.finishBytes())
     }
