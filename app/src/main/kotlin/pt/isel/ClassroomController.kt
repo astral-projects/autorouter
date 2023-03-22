@@ -1,9 +1,11 @@
 package pt.isel
 
+import pt.isel.autorouter.annotations.ArQuery
+import pt.isel.autorouter.annotations.ArRoute
+import pt.isel.autorouter.annotations.AutoRouter
 import java.util.*
 
 class ClassroomController {
-
     val repo = mutableMapOf(
         "i41d" to listOf(
             Student(7236, "Jonas Mancas Lubri", 56, 4),
@@ -27,7 +29,8 @@ class ClassroomController {
      *   http://localhost:4000/classroom/i42d?student=jo
      */
     @Synchronized
-    fun search(classroom: String, student: String?): Optional<List<Student>> {
+    @AutoRouter("/classroom/{classroom}")
+    fun search(@ArRoute classroom: String, @ArQuery student: String?): Optional<List<Student>> {
         return repo[classroom]
             ?.let {
                 if (student == null) {
