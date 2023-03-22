@@ -7,9 +7,6 @@ import java.util.stream.Stream;
 
 public class AutoRouterDynamic {
     public static Stream<ArHttpRoute> autorouterDynamic(Object controller) {
-        /**
-         * TO DO
-         */
         return Stream.empty();
     }
 

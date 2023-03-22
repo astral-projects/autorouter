@@ -12,6 +12,7 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -21,7 +22,6 @@ class JsonServerTestForClassroom {
 
     private var server: JsonServer? = null
     private val mapper = ObjectMapper()
-
 
     fun makeJsonServer(): Stream<JsonServer> = Stream.of(
         ClassroomController().autorouterReflect().jsonServer(),
@@ -40,11 +40,15 @@ class JsonServerTestForClassroom {
         }
     }
 
+    /*
+     * Erro nesta funcao do teardown algo nao esta correto
+     * nao deveria usar o suspend pois esta a utilizar uma corroutine
+     */
     fun teardown() = runBlocking {
         suspendCoroutine { cont ->
             server?.javalin()?.events {
                 it.serverStopped { cont.resume(Unit) }
-                it.serverStopFailed { cont.resume(Unit) }
+                it.serverStopFailed {cont.resume(Unit) }
             }
             server?.close()
             server = null
@@ -74,7 +78,8 @@ class JsonServerTestForClassroom {
                 Student(4536, "Isel Maior", 7, 5),
                 Student(5689, "Ever Sad", 7, 3),
             ),
-            actual)
+            actual,
+        )
     }
 
     @ParameterizedTest
@@ -87,7 +92,8 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, object : TypeReference<List<Student>>() {})
         assertContentEquals(
             listOf(Student(4536, "Isel Maior", 7, 5)),
-            actual)
+            actual,
+        )
     }
 
     @ParameterizedTest
@@ -98,7 +104,8 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, Student::class.java)
         assertEquals(
             Student(7777, "Ze Gato", 11, 3),
-            actual)
+            actual,
+        )
     }
 
     @ParameterizedTest
@@ -109,7 +116,8 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, Student::class.java)
         assertEquals(
             Student(4536, "Isel Maior", 7, 5),
-            actual)
+            actual,
+        )
     }
 
     fun URL.put(json: String): String = (this.openConnection() as HttpURLConnection).run {
