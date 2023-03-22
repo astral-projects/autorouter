@@ -23,7 +23,7 @@ class AutoRouterTestForClassroom {
         )
     }
 
-    fun get_students(routes: List<ArHttpRoute>) {
+    private fun get_students(routes: List<ArHttpRoute>) {
         val r = routes.first { it.path == "/classroom/{classroom}" }
         val res = r.handler.handle(
             mapOf("classroom" to "i42d"),
@@ -51,7 +51,7 @@ class AutoRouterTestForClassroom {
     }
 
 
-    fun get_students_with_name_containing_word(routes: List<ArHttpRoute>) {
+    private fun get_students_with_name_containing_word(routes: List<ArHttpRoute>) {
         val r = routes.first { it.path == "/classroom/{classroom}" }
         val res = r.handler.handle(
             mapOf("classroom" to "i42d"),

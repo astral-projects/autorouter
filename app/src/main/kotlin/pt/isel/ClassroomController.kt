@@ -6,7 +6,6 @@ import pt.isel.autorouter.annotations.AutoRouter
 import java.util.*
 
 class ClassroomController {
-
     val repo = mutableMapOf(
         "i41d" to listOf(
             Student(7236, "Jonas Mancas Lubri", 56, 4),
