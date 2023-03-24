@@ -1,5 +1,6 @@
 package pt.isel.autorouter;
 
+import kotlin.contracts.Returns;
 import pt.isel.autorouter.annotations.ArBody;
 import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
@@ -35,7 +36,6 @@ public class AutoRouterReflect {
             Parameter[] params = m.getParameters();
             // Reminder: Each parameter can have more than one annotatation
             Annotation[][] paramsAnnotations = m.getParameterAnnotations();
-
             // Iterate through all parameters
             for (int i = 0; i < params.length; i++) {
                 // Get current parameter annotations
@@ -74,16 +74,38 @@ public class AutoRouterReflect {
         // If no annotation is found, throw exception
         throw new RuntimeException("Annotation not found");
     }
-
+    //atencao aos tipos primitivos com letra minuscula-> int.class
     private static Object toObject( Class clazz, String value ) {
+        if(value==null) {
+            try {
+                return createNewInstance(clazz);
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                     IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
         if( Boolean.class == clazz ) return Boolean.parseBoolean( value );
         if( Byte.class == clazz ) return Byte.parseByte( value );
         if( Short.class == clazz ) return Short.parseShort( value );
-        if( Integer.class == clazz ) return Integer.parseInt( value );
+        if( Integer.class == clazz || int.class==clazz) return Integer.parseInt( value );
         if( Long.class == clazz ) return Long.parseLong( value );
         if( Float.class == clazz ) return Float.parseFloat( value );
         if( Double.class == clazz ) return Double.parseDouble( value );
         return value;
     }
 
+    private static Object createNewInstance(Class clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        //TODO - Find parameters of specific constructor Studnet
+        List<Object> args = new ArrayList<>();
+        args.add(2023);
+        args.add("GitHubcopilot");
+        args.add(20);
+        args.add(1);
+        //chamar o getConstrucgtors e escolher o primeiro
+        Constructor o = clazz.getDeclaredConstructor(new Class[] {int.class,String.class,int.class,int.class});
+        o.setAccessible(true);
+        return o.newInstance(args.toArray());
+
+    }
 }
+

@@ -1,6 +1,7 @@
 package pt.isel
 
 import pt.isel.autorouter.ArVerb
+import pt.isel.autorouter.annotations.ArBody
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
@@ -55,7 +56,7 @@ class ClassroomController {
     fun addStudent(
         @ArRoute classroom: String,
         @ArRoute nr: Int,
-        @ArRoute s: Student,
+        @ArBody s: Student,
     ): Optional<Student> {
         if (nr != s.nr) return Optional.empty() // return 409 instead ?
         val stds = repo[classroom] ?: emptyList()

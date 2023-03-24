@@ -89,4 +89,28 @@ class AutoRouterTestForClassroom {
         )
         assertEquals(nStudents - 1, controller.repo["i42d"]?.size)
     }
+
+    @Test fun add_students_with_name_and_number_via_reflection() {
+        val controller = ClassroomController()
+        add_students_with_name_and_number(
+            controller,
+            controller.autorouterReflect().toList(),
+        )
+    }
+
+    private fun add_students_with_name_and_number(controller: ClassroomController, toList: List<ArHttpRoute>) {
+        val r = toList.first { it.path == "/classroom/{classroom}/students/{nr}" }
+        val nStudents = controller.repo["i42d"]?.size
+        requireNotNull(nStudents)
+        val res = r.handler.handle(
+            mapOf("classroom" to "i42d", "nr" to "2023"),
+            emptyMap(),
+            mapOf("name" to "GitHubcopilot", "number" to "2023", "group" to "20", "semester" to "1"),
+        )
+        assertEquals(
+            Student(2023, "GitHubcopilot", 20, 1),
+            res.get() as Student,
+        )
+        assertEquals(nStudents + 1, controller.repo["i42d"]?.size)
+    }
 }
