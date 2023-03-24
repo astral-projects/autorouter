@@ -35,35 +35,14 @@ public class AutoRouterReflect {
             Parameter[] params = m.getParameters();
             // Reminder: Each parameter can have more than one annotatation
             Annotation[][] paramsAnnotations = m.getParameterAnnotations();
+
             // Iterate through all parameters
             for (int i = 0; i < params.length; i++) {
                 // Get current parameter annotations
                 String paramName = params[i].getName();
-                // TODO - Fix case where a parameter has more than one Ar type annotation
-                // TODO - create print function
-                // TODO - convert PG code to TDS+
-                // TODO - use a map or something similar ex: ArRoute -> ::routeArgs
                 // Iterate through all annotations of the current parameter
-                for (Annotation annotation: paramsAnnotations[i]) {
-                    if (annotation instanceof ArRoute) {
-                        System.out.println("@ArRoute: " + params[i].getName() + " = " + routeArgs.get(paramName));
-                        Class<?> retType = params[i].getType();
-                        String ret = routeArgs.get(paramName); // routeArgs["nr"] = "4123", for example
-                        args.add(convert(retType, ret));
-                        break;
-                    } else if (annotation instanceof ArBody) {
-                        System.out.println("@ArBody: " + params[i].getName() + " = " + bodyArgs.get(paramName));
-                        args.add(bodyArgs.get(paramName));
-                        break;
-                    } else if (annotation instanceof ArQuery) {
-                        System.out.println("@ArQuery: " + params[i].getName() + " = " + queryArgs.get(paramName));
-                        args.add(queryArgs.get(paramName));
-                        break;
-                    }
-                }
+                args.add(findParameterAnnotated( paramsAnnotations[i], params[i].getType(), paramName,routeArgs,bodyArgs,queryArgs));
             }
-            System.out.println("Method name: " + m.getName());
-            System.out.println("Arguments passed to method: " + args);
             try {
                 // Args needs to be converted to Object[]
                 return (Optional<?>) m.invoke(target, args.toArray());
@@ -73,10 +52,38 @@ public class AutoRouterReflect {
         };
         return new ArHttpRoute(functionName, method, path, handler);
     }
-
-    private static Object convert(Class<?> targetType, String text) {
-        PropertyEditor editor = PropertyEditorManager.findEditor(targetType);
-        editor.setAsText(text);
-        return editor.getValue();
+    // TODO - Fix case where a parameter has more than one Ar type annotation
+    //Find the correct annotation for the current parameter
+    // and return the converted value
+    private static Object findParameterAnnotated(Annotation[] paramsAnnotations ,
+                                                 Class<?> type,
+                                                 String paramName,
+                                                 Map<String, String> routeArgs,
+                                                 Map<String, String> bodyArgs,
+                                                 Map<String, String> queryArgs) {
+        // Iterate through all annotations of the current parameter
+        for (Annotation annotation : paramsAnnotations) {
+            if (annotation instanceof ArRoute) {
+                return toObject(type, routeArgs.get(paramName));
+            } else if (annotation instanceof ArBody) {
+                return toObject(type, bodyArgs.get(paramName));
+            } else if (annotation instanceof ArQuery) {
+                return toObject(type, queryArgs.get(paramName));
+            }
+        }
+        // If no annotation is found, throw exception
+        throw new RuntimeException("Annotation not found");
     }
+
+    private static Object toObject( Class clazz, String value ) {
+        if( Boolean.class == clazz ) return Boolean.parseBoolean( value );
+        if( Byte.class == clazz ) return Byte.parseByte( value );
+        if( Short.class == clazz ) return Short.parseShort( value );
+        if( Integer.class == clazz ) return Integer.parseInt( value );
+        if( Long.class == clazz ) return Long.parseLong( value );
+        if( Float.class == clazz ) return Float.parseFloat( value );
+        if( Double.class == clazz ) return Double.parseDouble( value );
+        return value;
+    }
+
 }
