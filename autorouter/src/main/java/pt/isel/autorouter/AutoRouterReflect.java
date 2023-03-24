@@ -5,11 +5,10 @@ import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
 
+import java.beans.PropertyEditor;
+import java.beans.PropertyEditorManager;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -31,10 +30,10 @@ public class AutoRouterReflect {
         String path = m.getAnnotation(AutoRouter.class).value();
         // Create a list to store retrieved annotated types
         List<Object> args = new ArrayList<>();
-        // Implement functional interface
+        // Implement functional interface method
         ArHttpHandler handler = (routeArgs, queryArgs, bodyArgs) -> {
             Parameter[] params = m.getParameters();
-            // Reminder: each parameter can have more than one annotated
+            // Reminder: Each parameter can have more than one annotatation
             Annotation[][] paramsAnnotations = m.getParameterAnnotations();
             // Iterate through all parameters
             for (int i = 0; i < params.length; i++) {
@@ -43,23 +42,14 @@ public class AutoRouterReflect {
                 // TODO - Fix case where a parameter has more than one Ar type annotation
                 // TODO - create print function
                 // TODO - convert PG code to TDS+
-                // TODO - use a map ex: ArRoute -> ::routeArgs
-                // Retrieve only existing Ar type annotation of the current parameter
-
+                // TODO - use a map or something similar ex: ArRoute -> ::routeArgs
+                // Iterate through all annotations of the current parameter
                 for (Annotation annotation: paramsAnnotations[i]) {
                     if (annotation instanceof ArRoute) {
                         System.out.println("@ArRoute: " + params[i].getName() + " = " + routeArgs.get(paramName));
-
-                        Object retType = params[i].getParameterizedType();
-                        int numb;
-                        String ret = routeArgs.get(paramName);
-                        if(paramName.equals("nr")){
-                            numb = ((Integer.parseInt(ret)));
-                            args.add(numb);
-                            break;
-                        }
-                        System.out.println(retType);
-                        args.add(routeArgs.get(paramName));
+                        Class<?> retType = params[i].getType();
+                        String ret = routeArgs.get(paramName); // routeArgs["nr"] = "4123", for example
+                        args.add(convert(retType, ret));
                         break;
                     } else if (annotation instanceof ArBody) {
                         System.out.println("@ArBody: " + params[i].getName() + " = " + bodyArgs.get(paramName));
@@ -82,5 +72,11 @@ public class AutoRouterReflect {
             }
         };
         return new ArHttpRoute(functionName, method, path, handler);
+    }
+
+    private static Object convert(Class<?> targetType, String text) {
+        PropertyEditor editor = PropertyEditorManager.findEditor(targetType);
+        editor.setAsText(text);
+        return editor.getValue();
     }
 }

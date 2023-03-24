@@ -6,7 +6,6 @@ package pt.isel
 import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.autorouterDynamic
 import pt.isel.autorouter.autorouterReflect
-import kotlin.streams.toList
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -54,7 +53,7 @@ class AutoRouterTestForClassroom {
         )
     }
 
-    fun get_students_with_name_containing_word(routes: List<ArHttpRoute>) {
+    private fun get_students_with_name_containing_word(routes: List<ArHttpRoute>) {
         val r = routes.first { it.path == "/classroom/{classroom}" }
         val res = r.handler.handle(
             mapOf("classroom" to "i42d"),
@@ -77,8 +76,8 @@ class AutoRouterTestForClassroom {
 
     private fun delete_students_with_name_and_number(controller: ClassroomController, routes: List<ArHttpRoute>) {
         val r = routes.first { it.path == "/classroom/{classroom}/students/{nr}" }
-        val result = controller.repo["i42d"]?.size
-        requireNotNull(result)
+        val nStudents = controller.repo["i42d"]?.size
+        requireNotNull(nStudents)
         val res = r.handler.handle(
             mapOf("classroom" to "i42d", "nr" to "4536"),
             emptyMap(),
@@ -88,10 +87,6 @@ class AutoRouterTestForClassroom {
             Student(4536, "Isel Maior", 7, 5),
             res.get() as Student,
         )
-
-        assertEquals(
-            result - 1,
-            controller.repo["i42d"]?.size,
-        )
+        assertEquals(nStudents - 1, controller.repo["i42d"]?.size)
     }
 }
