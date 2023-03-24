@@ -12,6 +12,7 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -39,11 +40,15 @@ class JsonServerTestForClassroom {
         }
     }
 
+    /*
+     * Erro nesta funcao do teardown algo nao esta correto
+     * nao deveria usar o suspend pois esta a utilizar uma corroutine
+     */
     fun teardown() = runBlocking {
         suspendCoroutine { cont ->
             server?.javalin()?.events {
                 it.serverStopped { cont.resume(Unit) }
-                it.serverStopFailed { cont.resume(Unit) }
+                it.serverStopFailed {cont.resume(Unit) }
             }
             server?.close()
             server = null
