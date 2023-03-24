@@ -51,10 +51,11 @@ class ClassroomController {
      *     http://localhost:4000/classroom/i42d/students/7777
      */
     @Synchronized
+    @AutoRouter("/classroom/{classroom}/students/{nr}", method = ArVerb.PUT)
     fun addStudent(
-        classroom: String,
-        nr: Int,
-        s: Student,
+        @ArRoute classroom: String,
+        @ArRoute nr: Int,
+        @ArRoute s: Student,
     ): Optional<Student> {
         if (nr != s.nr) return Optional.empty() // return 409 instead ?
         val stds = repo[classroom] ?: emptyList()
