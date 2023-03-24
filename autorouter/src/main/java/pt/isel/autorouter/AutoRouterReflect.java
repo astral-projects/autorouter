@@ -10,27 +10,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class AutoRouterReflect {
-    public static Stream<ArHttpRoute> autorouterReflect(Object controller) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        // Get the declared constructor
-        Constructor<?> constructor = controller.getClass().getDeclaredConstructor();
-        // Set constructor visibility to public
-        constructor.setAccessible(true);
-        // Create a new received class instance
-        Object newClassInstance = constructor.newInstance();
+    public static Stream<ArHttpRoute> autorouterReflect(Object controller) {
         // Filter methods that have autoroute annotation and have an Optional return type
         Stream<Method> methods = Arrays
                 .stream(controller.getClass().getDeclaredMethods())
                 .filter(m -> m.isAnnotationPresent(AutoRouter.class)
                         && m.getReturnType() == Optional.class);
         // For each method, create an HTTP instance
-        return methods.map(m -> createArHttpRoute(newClassInstance, m));
+        return methods.map(m -> createArHttpRoute(controller, m));
     }
 
     private static ArHttpRoute createArHttpRoute(Object target, Method m) {
@@ -54,16 +45,30 @@ public class AutoRouterReflect {
                 // TODO - convert PG code to TDS+
                 // TODO - use a map ex: ArRoute -> ::routeArgs
                 // Retrieve only existing Ar type annotation of the current parameter
+
                 for (Annotation annotation: paramsAnnotations[i]) {
                     if (annotation instanceof ArRoute) {
                         System.out.println("@ArRoute: " + params[i].getName() + " = " + routeArgs.get(paramName));
+
+                        Object retType = params[i].getParameterizedType();
+                        int numb;
+                        String ret = routeArgs.get(paramName);
+                        if(paramName.equals("nr")){
+                            numb = ((Integer.parseInt(ret)));
+                            args.add(numb);
+                            break;
+                        }
+                        System.out.println(retType);
                         args.add(routeArgs.get(paramName));
+                        break;
                     } else if (annotation instanceof ArBody) {
                         System.out.println("@ArBody: " + params[i].getName() + " = " + bodyArgs.get(paramName));
                         args.add(bodyArgs.get(paramName));
+                        break;
                     } else if (annotation instanceof ArQuery) {
                         System.out.println("@ArQuery: " + params[i].getName() + " = " + queryArgs.get(paramName));
                         args.add(queryArgs.get(paramName));
+                        break;
                     }
                 }
             }

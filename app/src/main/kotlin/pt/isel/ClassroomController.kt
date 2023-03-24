@@ -1,5 +1,6 @@
 package pt.isel
 
+import pt.isel.autorouter.ArVerb
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
@@ -66,7 +67,8 @@ class ClassroomController {
      *   curl --request DELETE http://localhost:4000/classroom/i42d/students/4536
      */
     @Synchronized
-    fun removeStudent(classroom: String, nr: Int): Optional<Student> {
+    @AutoRouter("/classroom/{classroom}/students/{nr}", method = ArVerb.DELETE)
+    fun removeStudent(@ArRoute classroom: String, @ArRoute nr: Int): Optional<Student> {
         val stds = repo[classroom] ?: return Optional.empty()
         val s = stds.firstOrNull { it.nr == nr } ?: return Optional.empty()
         repo[classroom] = stds.filter { it.nr != nr }
