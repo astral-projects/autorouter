@@ -1,4 +1,4 @@
-package pt.isel
+package pt.isel.formula1
 
 import pt.isel.autorouter.ArVerb
 import pt.isel.autorouter.annotations.ArBody
@@ -7,7 +7,7 @@ import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
 import java.util.*
 
-class Formula1 {
+class Formula1Controller {
     val repo = mutableMapOf(
         "RedBull" to listOf(
             Driver(1, "Max Verstappen", "47RB", 1),
@@ -32,7 +32,10 @@ class Formula1 {
      */
     @Synchronized
     @AutoRouter("/teams/{teamName}")
-    fun search(@ArRoute teamName: String, @ArQuery driver: String?): Optional<List<Driver>> {
+    fun search(
+        @ArRoute teamName: String,
+        @ArQuery driver: String?
+    ): Optional<List<Driver>> {
         return repo[teamName]
             ?.let {
                 if (driver == null) {
@@ -58,7 +61,7 @@ class Formula1 {
         @ArRoute driverId: Int,
         @ArBody dr: Driver,
     ): Optional<Driver> {
-        if (driverId != dr.driverId) return Optional.empty() // return 409 instead ?
+        if (driverId != dr.driverId) return Optional.empty()
         val stds = repo[teamName] ?: emptyList()
         repo[teamName] = stds.filter { it.driverId != driverId } + dr
         return Optional.of(dr)

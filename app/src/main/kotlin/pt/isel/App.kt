@@ -2,7 +2,8 @@ package pt.isel
 
 import pt.isel.autorouter.autorouterReflect
 import pt.isel.autorouter.jsonServer
+import pt.isel.classroom.ClassroomController
 
 fun main() {
-    Formula1().autorouterReflect().jsonServer().start(4000)
+    ClassroomController().autorouterReflect().jsonServer().start(4000)
 }

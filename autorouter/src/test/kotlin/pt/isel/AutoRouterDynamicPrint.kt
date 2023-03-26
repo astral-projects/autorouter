@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.util.TraceClassVisitor
 import pt.isel.autorouter.AutoRouterDynamic
+import pt.isel.classroom.ClassroomController
 import java.io.PrintWriter
 
 fun printBytecodes(bytes: ByteArray) {

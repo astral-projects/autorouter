@@ -1,4 +1,4 @@
-package pt.isel
+package pt.isel.formula1
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
