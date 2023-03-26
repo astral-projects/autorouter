@@ -1,5 +1,6 @@
 package pt.isel
 
+import pt.isel.classroom.Student
 import java.util.*
 
 class ClassroomControllerEmpty {

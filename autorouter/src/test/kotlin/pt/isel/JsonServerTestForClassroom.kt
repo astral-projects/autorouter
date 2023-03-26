@@ -7,12 +7,13 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import pt.isel.autorouter.*
+import pt.isel.classroom.ClassroomController
+import pt.isel.classroom.Student
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
