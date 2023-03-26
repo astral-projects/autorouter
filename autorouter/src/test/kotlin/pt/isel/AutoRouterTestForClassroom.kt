@@ -12,86 +12,101 @@ import kotlin.test.assertEquals
 
 class AutoRouterTestForClassroom {
 
-    @Test fun get_drivers_via_reflection() {
-        get_drivers(
-            Formula1().autorouterReflect().toList(),
+
+
+    @Test fun get_students_via_dynamic() {
+        get_students(
+            ClassroomController().autorouterDynamic().toList(),
         )
     }
 
-//    @Test
-    fun get_students_via_dynamic() {
-        get_drivers(
-            Formula1().autorouterDynamic().toList(),
-        )
-    }
-
-    fun get_drivers(routes: List<ArHttpRoute>) {
-        val r = routes.first { it.path == "/teams/{teamName}" }
+    fun get_students(routes: List<ArHttpRoute>) {
+        val r = routes.first { it.path == "/classroom/{classroom}" }
         val res = r.handler.handle(
-            mapOf("teamName" to "RedBull"),
+            mapOf("classroom" to "i42d"),
             emptyMap(),
             emptyMap(),
         )
         assertContentEquals(
             listOf(
-                Driver(1, "Max Verstappen", "47RB", 1),
-                Driver(2, "Pierre Gasly", "12RB", 2),
-                Driver(3, "Alexander Albon", "24RB", 3),
+                Student(9876, "Ole Super", 7, 5),
+                Student(4536, "Isel Maior", 7, 5),
+                Student(5689, "Ever Sad", 7, 3),
             ),
-            res.get() as List<Driver>,
+            res.get() as List<Student>,
         )
     }
 
-    @Test fun get_drivers_by_driverId_with_reflection() {
-        get_drivers_by_name(
-            Formula1().autorouterReflect().toList(),
+    @Test fun get_students_with_name_containing_word_via_reflection() {
+        get_students_with_name_containing_word(
+            ClassroomController().autorouterReflect().toList(),
         )
     }
 
-//    @Test
-    fun get_students_with_name_containing_word_via_dynamic() {
-        get_drivers_by_name(
-            Formula1().autorouterDynamic().toList(),
+    @Test fun get_students_with_name_containing_word_via_dynamic() {
+        get_students_with_name_containing_word(
+            ClassroomController().autorouterDynamic().toList(),
         )
     }
 
-    private fun get_drivers_by_name(routes: List<ArHttpRoute>) {
-        val r = routes.first { it.path == "/teams/{teamName}" }
+    private fun get_students_with_name_containing_word(routes: List<ArHttpRoute>) {
+        val r = routes.first { it.path == "/classroom/{classroom}" }
         val res = r.handler.handle(
-            mapOf("teamName" to "Ferrari"),
-            mapOf("driver" to "Leclerc"),
+            mapOf("classroom" to "i42d"),
+            mapOf("student" to "maior"),
             emptyMap(),
         )
         assertContentEquals(
-            listOf(Driver(7, "Charles Leclerc", "15F", 1)),
-            res.get() as List<Driver>,
+            listOf(Student(4536, "Isel Maior", 7, 5)),
+            res.get() as List<Student>,
         )
     }
 
-    @Test fun delete_driver_with_driverId_via_reflection() {
-        val controller = Formula1()
-        delete_driver_using_userId(
+    @Test fun delete_students_with_name_and_number_via_reflection() {
+        val controller = ClassroomController()
+        delete_students_with_name_and_number(
             controller,
             controller.autorouterReflect().toList(),
         )
     }
 
-    private fun delete_driver_using_userId(controller: Formula1, routes: List<ArHttpRoute>) {
-        val r = routes.first { it.path == "/teams/{teamName}/drivers/{driverId}" }
-        val noDrivers = controller.repo["Ferrari"]?.size
-        requireNotNull(noDrivers) { "No drivers in Ferrari team!" }
+    private fun delete_students_with_name_and_number(controller: ClassroomController, routes: List<ArHttpRoute>) {
+        val r = routes.first { it.path == "/classroom/{classroom}/students/{nr}" }
+        val nStudents = controller.repo["i42d"]?.size
+        requireNotNull(nStudents)
         val res = r.handler.handle(
-            mapOf("teamName" to "Ferrari", "driverId" to "8"),
+            mapOf("classroom" to "i42d", "nr" to "4536"),
             emptyMap(),
             emptyMap(),
         )
         assertEquals(
-            Driver(8, "Sebastian Vettel", "55F", 2),
-            res.get() as Driver,
+            Student(4536, "Isel Maior", 7, 5),
+            res.get() as Student,
+        )
+        assertEquals(nStudents - 1, controller.repo["i42d"]?.size)
+    }
+
+    @Test fun add_students_with_name_and_number_via_reflection() {
+        val controller = ClassroomController()
+        add_students_with_name_and_number(
+            controller,
+            controller.autorouterReflect().toList(),
+        )
+    }
+
+    private fun add_students_with_name_and_number(controller: ClassroomController, toList: List<ArHttpRoute>) {
+        val r = toList.first { it.path == "/classroom/{classroom}/students/{nr}" }
+        val nStudents = controller.repo["i42d"]?.size
+        requireNotNull(nStudents)
+        val res = r.handler.handle(
+            mapOf("classroom" to "i42d", "nr" to "2023"),
+            emptyMap(),
+            mapOf("name" to "GitHubcopilot", "number" to "2023", "group" to "20", "semester" to "1"),
         )
         assertEquals(
-            noDrivers - 1,
-            controller.repo["Ferrari"]?.size,
+            Student(2023, "GitHubcopilot", 20, 1),
+            res.get() as Student,
         )
+        assertEquals(nStudents + 1, controller.repo["i42d"]?.size)
     }
 }
