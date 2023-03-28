@@ -66,17 +66,16 @@ public class AutoRouterReflect {
         for (Annotation annotation : param.getAnnotations()) {
             // Assert if current annotation is of an Ar type
             if (requestArgs.containsKey(annotation.annotationType())) {
-                // Retrive annotation correspondent map.
+                // Retrieve annotation correspondent map.
                 // Ex: @ArRoute -> routeArgs
                 Map<String, String> mapArgs = requestArgs.get(annotation.annotationType());
-                // Retrive correspondent value from the parameter name.
+                // Retrieve correspondent value from the parameter name.
                 // Ex: classroom -> l41d
                 String stringValue = mapArgs.get(param.getName());
                 if (stringValue == null && annotation.annotationType() == ArQuery.class){
                     return null;
                 }
                 System.out.println("Param: " + param.getName() + "->" + stringValue);
-                // TODO (check if type can be nullable, if so give null instead of converting to a type)
                 return stringValue != null
                     ? convertStringToPrimitiveType(param.getType(), stringValue)
                     : createNewInstance(param.getType(), mapArgs);
@@ -100,24 +99,26 @@ public class AutoRouterReflect {
     }
 
     private static Object createNewInstance(Class<?> receivedClass, Map<String, String> argsValues) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        // Search for the "primary constructor"
-//      for (Constructor<?> constructor : receivedClass.getDeclaredConstructors()) {
-        Constructor<?> constructor = receivedClass.getDeclaredConstructors()[0];
-        // Assert if the current constructor name equals the received class name.
-        if (constructor.getName().equals(receivedClass.getName())) {
-            List<Object> args = new ArrayList<>();
-            // Convert the string value of the parameters to their corresponding type
-            for (Parameter constructorParam : constructor.getParameters()) {
-                // Get constructor param name: Ex: nr
-                String name = constructorParam.getName();
-                Object value = convertStringToPrimitiveType(constructorParam.getType(), argsValues.get(name));
-                args.add(value);
-            }
-            // Change constructor accessibility to public
-            constructor.setAccessible(true);
-            // Return a new created instance of the received class with all parameter types correctly placed
-            return constructor.newInstance(args.toArray());
+        // Get the first constructor of the received class
+        Constructor<?> constructor;
+        try {
+            //Any class should have at least one constructor, this make sense?
+            constructor = receivedClass.getDeclaredConstructors()[0];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException("No constructor found in the " + receivedClass.getName() + " class");
         }
-        throw new RuntimeException("Constructor not found for the " + receivedClass.getSimpleName() + " class");
+        // Assert if the current constructor name equals the received class name.
+        List<Object> args = new ArrayList<>();
+        // Convert the string value of the parameters to their corresponding type
+        for (Parameter constructorParam : constructor.getParameters()) {
+            // Get constructor param name: Ex: nr
+            String name = constructorParam.getName();
+            Object value = convertStringToPrimitiveType(constructorParam.getType(), argsValues.get(name));
+            args.add(value);
+        }
+        // Change constructor accessibility to public
+        constructor.setAccessible(true);
+        // Return a new created instance of the received class with all parameter types correctly placed
+        return constructor.newInstance(args.toArray());
     }
 }
