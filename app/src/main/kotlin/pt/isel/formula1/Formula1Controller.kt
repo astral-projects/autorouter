@@ -10,12 +10,12 @@ import java.util.*
 class Formula1Controller {
     val repo = mutableMapOf(
         "RedBull" to listOf(
-            Driver(1, "Max Verstappen", "47RB", 1),
-            Driver(2, "Pierre Gasly", "12RB", 2),
-            Driver(3, "Alexander Albon", "24RB", 3),
+            Driver(1, "Max Verstappen", 340000.50, true,  1),
+            Driver(2, "Pierre Gasly", 540000.25, false, null),
+            Driver(3, "Alexander Albon", 280000.89, true, 4),
         ),
         "Mercedes" to listOf(
-            Driver(4, "Lewis Hamilton", "35M", 1),
+            Driver(4, "Lewis Hamilton", 6700000, false, null),
             Driver(5, "Valtteri Bottas", "31M", 2),
             Driver(6, "George Russell", "22M", 3),
         ),
@@ -34,7 +34,7 @@ class Formula1Controller {
     @AutoRouter("/teams/{teamName}")
     fun search(
         @ArRoute teamName: String,
-        @ArQuery driver: String?
+        @ArQuery driver: String?,
     ): Optional<List<Driver>> {
         return repo[teamName]
             ?.let {

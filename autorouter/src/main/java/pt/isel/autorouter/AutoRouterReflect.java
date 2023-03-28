@@ -72,6 +72,9 @@ public class AutoRouterReflect {
                 // Retrive correspondent value from the parameter name.
                 // Ex: classroom -> l41d
                 String stringValue = mapArgs.get(param.getName());
+                if (stringValue == null && annotation.annotationType() == ArQuery.class){
+                    return null;
+                }
                 System.out.println("Param: " + param.getName() + "->" + stringValue);
                 // TODO (check if type can be nullable, if so give null instead of converting to a type)
                 return stringValue != null
@@ -98,22 +101,22 @@ public class AutoRouterReflect {
 
     private static Object createNewInstance(Class<?> receivedClass, Map<String, String> argsValues) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         // Search for the "primary constructor"
-        for (Constructor<?> constructor : receivedClass.getDeclaredConstructors()) {
-            // Assert if the current constructor name equals the received class name.
-            if (constructor.getName().equals(receivedClass.getName())) {
-                List<Object> args = new ArrayList<>();
-                // Convert the string value of the parameters to their corresponding type
-                for (Parameter constructorParam : constructor.getParameters()) {
-                    // Get constructor param name: Ex: nr
-                    String name = constructorParam.getName();
-                    Object value = convertStringToPrimitiveType(constructorParam.getType(), argsValues.get(name));
-                    args.add(value);
-                }
-                // Change constructor accessibility to public
-                constructor.setAccessible(true);
-                // Return a new created instance of the received class with all parameter types correctly placed
-                return constructor.newInstance(args.toArray());
+//      for (Constructor<?> constructor : receivedClass.getDeclaredConstructors()) {
+        Constructor<?> constructor = receivedClass.getDeclaredConstructors()[0];
+        // Assert if the current constructor name equals the received class name.
+        if (constructor.getName().equals(receivedClass.getName())) {
+            List<Object> args = new ArrayList<>();
+            // Convert the string value of the parameters to their corresponding type
+            for (Parameter constructorParam : constructor.getParameters()) {
+                // Get constructor param name: Ex: nr
+                String name = constructorParam.getName();
+                Object value = convertStringToPrimitiveType(constructorParam.getType(), argsValues.get(name));
+                args.add(value);
             }
+            // Change constructor accessibility to public
+            constructor.setAccessible(true);
+            // Return a new created instance of the received class with all parameter types correctly placed
+            return constructor.newInstance(args.toArray());
         }
         throw new RuntimeException("Constructor not found for the " + receivedClass.getSimpleName() + " class");
     }
