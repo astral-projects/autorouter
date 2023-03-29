@@ -76,6 +76,7 @@ public class AutoRouterReflect {
                     return null;
                 }
                 System.out.println("Param: " + param.getName() + "->" + stringValue);
+                
                 return stringValue != null
                     ? convertStringToPrimitiveType(param.getType(), stringValue)
                     : createNewInstance(param.getType(), mapArgs);
