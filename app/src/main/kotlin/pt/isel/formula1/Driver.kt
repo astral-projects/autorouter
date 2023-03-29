@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class Driver(
     @JsonProperty("driverId") val driverId: Int,
     @JsonProperty("Name") val name: String,
-    @JsonProperty("carNumber") val carNumber: String,
-    @JsonProperty("teamNumber") val teamNr: Int,
+    @JsonProperty("CarPrice") val carPrice: Double,
+    @JsonProperty("Active") val active: Boolean,
+    @JsonProperty("numberOfTrophies") val nrTrophies: Int?,
 )

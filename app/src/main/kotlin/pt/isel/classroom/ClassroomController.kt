@@ -23,7 +23,7 @@ class ClassroomController {
             Student(9876, "Ole Super", 7, 5),
             Student(4536, "Isel Maior", 7, 5),
             Student(5689, "Ever Sad", 7, 3),
-        )
+        ),
     )
 
     /**
@@ -34,12 +34,15 @@ class ClassroomController {
     @AutoRouter("/classroom/{classroom}")
     fun search(
         @ArRoute classroom: String,
-        @ArQuery student: String?
+        @ArQuery student: String?,
     ): Optional<List<Student>> {
         return repo[classroom]
             ?.let {
-                if(student == null) Optional.of(it)
-                else Optional.of(it.filter { st -> st.name.lowercase().contains(student.lowercase()) })
+                if (student == null) {
+                    Optional.of(it)
+                } else {
+                    Optional.of(it.filter { st -> st.name.lowercase().contains(student.lowercase()) })
+                }
             }
             ?: Optional.empty()
     }
@@ -56,13 +59,14 @@ class ClassroomController {
     fun addStudent(
         @ArRoute classroom: String,
         @ArRoute nr: Int,
-        @ArBody s: Student
+        @ArBody s: Student,
     ): Optional<Student> {
-        if(nr != s.nr) return Optional.empty()
+        if (nr != s.nr) return Optional.empty()
         val stds = repo[classroom] ?: emptyList()
         repo[classroom] = stds.filter { it.nr != nr } + s
         return Optional.of(s)
     }
+
     /**
      * Example:
      *   curl --request DELETE http://localhost:4000/classroom/i42d/students/4536
@@ -71,8 +75,8 @@ class ClassroomController {
     @AutoRouter("/classroom/{classroom}/students/{nr}", method = DELETE)
     fun removeStudent(
         @ArRoute classroom: String,
-        @ArRoute nr: Int
-    ) : Optional<Student> {
+        @ArRoute nr: Int,
+    ): Optional<Student> {
         val stds = repo[classroom] ?: return Optional.empty()
         val s = stds.firstOrNull { it.nr == nr } ?: return Optional.empty()
         repo[classroom] = stds.filter { it.nr != nr }
