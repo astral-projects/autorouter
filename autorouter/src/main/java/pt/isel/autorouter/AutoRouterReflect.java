@@ -40,6 +40,7 @@ public class AutoRouterReflect {
             requestArgs.put(ArQuery.class, queryArgs);
             requestArgs.put(ArBody.class, bodyArgs);
             // Iterate through all parameters
+            System.out.println("Method: " + Arrays.toString(m.getParameters()));
             for (Parameter param : m.getParameters()) {
                 Object value = findParameterValueWithArAnnotation(param, requestArgs);
                 // Added retrieved value to the array to be sent to the current method
@@ -72,14 +73,19 @@ public class AutoRouterReflect {
                 // Retrieve correspondent value from the parameter name.
                 // Ex: classroom -> l41d
                 String stringValue = mapArgs.get(param.getName());
-                if (stringValue == null && annotation.annotationType() == ArQuery.class){
-                    return null;
+                if (stringValue != null){
+                    System.out.println("Param: " + param.getName() + "->" + stringValue);
+                    Boolean value = param.getType().isPrimitive();
+                    if(!param.getType().isPrimitive() || param.getType() == int.class){
+                        return convertStringToPrimitiveType(param.getType(), stringValue);
+                    } else {
+                        return createNewInstance(param.getType(), mapArgs);
+                    }
                 }
-                System.out.println("Param: " + param.getName() + "->" + stringValue);
-                
-                return stringValue != null
-                    ? convertStringToPrimitiveType(param.getType(), stringValue)
-                    : createNewInstance(param.getType(), mapArgs);
+                System.out.println("Param: " + param.getName() + "->" + null);
+                return null;
+
+
             }
         }
         // If no annotation is found, throw exception
@@ -102,12 +108,8 @@ public class AutoRouterReflect {
     private static Object createNewInstance(Class<?> receivedClass, Map<String, String> argsValues) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         // Get the first constructor of the received class
         Constructor<?> constructor;
-        try {
-            //Any class should have at least one constructor, this make sense?
-            constructor = receivedClass.getDeclaredConstructors()[0];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new RuntimeException("No constructor found in the " + receivedClass.getName() + " class");
-        }
+       
+        constructor = receivedClass.getDeclaredConstructors()[0];
         // Assert if the current constructor name equals the received class name.
         List<Object> args = new ArrayList<>();
         // Convert the string value of the parameters to their corresponding type
