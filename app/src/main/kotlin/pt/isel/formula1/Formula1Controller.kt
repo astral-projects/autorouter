@@ -35,11 +35,14 @@ class Formula1Controller {
     fun searchDriver(
         @ArRoute teamName: String,
         @ArQuery driver: String?,
-        @ArQuery active: Boolean? ,
+        @ArQuery active: Boolean?,
     ): Optional<List<Driver>> {
         return repo[teamName]
             ?.let {
-                if (driver == null && active == null) {
+                if(active == null) {
+                    Optional.of(it)
+                }
+                else if (driver == null) {
                     Optional.of(it)
                 } else {
                     Optional.of(it.filter { dr -> dr.name.lowercase().contains(driver.lowercase()) })

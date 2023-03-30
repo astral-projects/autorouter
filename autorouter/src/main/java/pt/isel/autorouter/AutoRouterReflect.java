@@ -4,6 +4,7 @@ import pt.isel.autorouter.annotations.ArBody;
 import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +41,7 @@ public class AutoRouterReflect {
             requestArgs.put(ArQuery.class, queryArgs);
             requestArgs.put(ArBody.class, bodyArgs);
             // Iterate through all parameters
+            System.out.println("Method: " + Arrays.toString(m.getParameters()));
             for (Parameter param : m.getParameters()) {
                 Object value = findParameterValueWithArAnnotation(param, requestArgs);
                 // Added retrieved value to the array to be sent to the current method
@@ -72,18 +74,30 @@ public class AutoRouterReflect {
                 // Retrieve correspondent value from the parameter name.
                 // Ex: classroom -> l41d
                 String stringValue = mapArgs.get(param.getName());
-                if (stringValue == null && annotation.annotationType() == ArQuery.class){
-                    return null;
+                // Check parameter type class
+                if (isPrimitiveOrStringType(param.getType())) {
+                    return convertStringToPrimitiveType(param.getType(), stringValue);
+                } else {
+                    // Get declared constructors
+                    Constructor<?>[] constructors = param.getType().getDeclaredConstructors();
+                    // Check if a parameter type has a constructor
+                    return constructors.length == 0 ? null : createNewInstance(param.getType(), constructors[0] ,mapArgs);
                 }
-                System.out.println("Param: " + param.getName() + "->" + stringValue);
-                
-                return stringValue != null
-                    ? convertStringToPrimitiveType(param.getType(), stringValue)
-                    : createNewInstance(param.getType(), mapArgs);
             }
         }
-        // If no annotation is found, throw exception
+        // If no annotation is found in this parameter, throw exception
         throw new RuntimeException("Ar type annotation was not found in the " + param.getName() + " parameter");
+    }
+
+    private static boolean isPrimitiveOrStringType(Class<?> clazz) {
+        if (Boolean.class == clazz || boolean.class == clazz) return true;
+        if (Byte.class == clazz || byte.class == clazz) return true;
+        if (Short.class == clazz || short.class == clazz) return true;
+        if (Integer.class == clazz || int.class == clazz) return true;
+        if (Long.class == clazz || long.class == clazz) return true;
+        if (Float.class == clazz || float.class == clazz) return true;
+        if (Double.class == clazz || double.class == clazz) return true;
+        return String.class == clazz;
     }
 
     private static Object convertStringToPrimitiveType(Class<?> clazz, String value) {
@@ -99,15 +113,11 @@ public class AutoRouterReflect {
         return value;
     }
 
-    private static Object createNewInstance(Class<?> receivedClass, Map<String, String> argsValues) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        // Get the first constructor of the received class
-        Constructor<?> constructor;
-        try {
-            //Any class should have at least one constructor, this make sense?
-            constructor = receivedClass.getDeclaredConstructors()[0];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new RuntimeException("No constructor found in the " + receivedClass.getName() + " class");
-        }
+    private static Object createNewInstance(
+            Class<?> receivedClass,
+            Constructor<?> constructor,
+            Map<String, String> argsValues
+    ) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         // Assert if the current constructor name equals the received class name.
         List<Object> args = new ArrayList<>();
         // Convert the string value of the parameters to their corresponding type
