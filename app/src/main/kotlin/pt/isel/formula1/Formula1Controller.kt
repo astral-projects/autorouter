@@ -39,13 +39,16 @@ class Formula1Controller {
     ): Optional<List<Driver>> {
         return repo[teamName]
             ?.let {
-                if(active == null) {
-                    Optional.of(it)
+                if(active != null && driver != null){
+                    Optional.of(it.filter { dr -> dr.name.contains(driver) && (dr.active == active) })
+                     }
+                else if(active!=null){
+                    Optional.of(it.filter { it.active==active })
                 }
-                else if (driver == null) {
-                    Optional.of(it)
+                else if (driver!=null) {
+                    Optional.of(it.filter { it.name==driver })
                 } else {
-                    Optional.of(it.filter { dr -> dr.name.lowercase().contains(driver.lowercase()) })
+                    Optional.of(it)
                 }
             }
             ?: Optional.empty()
@@ -87,3 +90,4 @@ class Formula1Controller {
         return Optional.of(s)
     }
 }
+//SInais sonoros responder C
