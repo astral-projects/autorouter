@@ -10,7 +10,11 @@ import pt.isel.autorouter.*
 import pt.isel.classroom.ClassroomController
 import pt.isel.classroom.Student
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
 import kotlin.coroutines.resume
@@ -23,6 +27,7 @@ class JsonServerTestForClassroom {
 
     private var server: JsonServer? = null
     private val mapper = ObjectMapper()
+
 
     fun makeJsonServer(): Stream<JsonServer> = Stream.of(
         ClassroomController().autorouterReflect().jsonServer(),
@@ -41,15 +46,11 @@ class JsonServerTestForClassroom {
         }
     }
 
-    /*
-     * Erro nesta funcao do teardown algo nao esta correto
-     * nao deveria usar o suspend pois esta a utilizar uma corroutine
-     */
     fun teardown() = runBlocking {
         suspendCoroutine { cont ->
             server?.javalin()?.events {
                 it.serverStopped { cont.resume(Unit) }
-                it.serverStopFailed {cont.resume(Unit) }
+                it.serverStopFailed { cont.resume(Unit) }
             }
             server?.close()
             server = null
@@ -79,8 +80,7 @@ class JsonServerTestForClassroom {
                 Student(4536, "Isel Maior", 7, 5),
                 Student(5689, "Ever Sad", 7, 3),
             ),
-            actual,
-        )
+            actual)
     }
 
     @ParameterizedTest
@@ -93,20 +93,18 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, object : TypeReference<List<Student>>() {})
         assertContentEquals(
             listOf(Student(4536, "Isel Maior", 7, 5)),
-            actual,
-        )
+            actual)
     }
 
     @ParameterizedTest
     @MethodSource("makeJsonServer")
     fun insert_student_in_classroom(jsonServer: JsonServer) = runJsonServer(jsonServer) {
         val json = URL("http://localhost:4000/classroom/i42d/students/7777")
-            .put("""{"name":"Ze Gato","group":"11", "semester":"3"}""")
+            .put("""{"nr": "7777", "name":"Ze Gato","group":"11", "semester":"3"}""")
         val actual = mapper.readValue(json, Student::class.java)
         assertEquals(
             Student(7777, "Ze Gato", 11, 3),
-            actual,
-        )
+            actual)
     }
 
     @ParameterizedTest
@@ -117,22 +115,18 @@ class JsonServerTestForClassroom {
         val actual = mapper.readValue(json, Student::class.java)
         assertEquals(
             Student(4536, "Isel Maior", 7, 5),
-            actual,
-        )
+            actual)
     }
 
-    fun URL.put(json: String): String = (this.openConnection() as HttpURLConnection).run {
-        requestMethod = "PUT"
-        doOutput = true
-        val out = json.toByteArray(StandardCharsets.UTF_8)
-        val length = out.size
-        setFixedLengthStreamingMode(length)
-        setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-        connect()
-        outputStream.use { os ->
-            os.write(out)
-            this.inputStream.bufferedReader().readText()
-        }
+    fun URL.put(json: String): String {
+        val client = HttpClient.newHttpClient()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(this.toString()))
+            .header("Content-Type", "application/json; charset=UTF-8")
+            .PUT(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
     }
 
     fun URL.delete(): String = (this.openConnection() as HttpURLConnection).run {

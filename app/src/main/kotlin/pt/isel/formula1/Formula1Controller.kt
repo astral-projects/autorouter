@@ -5,9 +5,10 @@ import pt.isel.autorouter.annotations.ArBody
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
+import java.time.LocalDate
 import java.util.*
 
-class Formula1Controller {
+object Formula1Controller {
     val repo = mutableMapOf(
         "RedBull" to listOf(
             Driver(1, "Max Verstappen", 340000.50, true, 1),
@@ -32,33 +33,38 @@ class Formula1Controller {
      */
     @Synchronized
     @AutoRouter("/teams/{teamName}")
-    fun searchDriver(
+    fun searchDrivers(
         @ArRoute teamName: String,
         @ArQuery driver: String?,
         @ArQuery active: Boolean?,
     ): Optional<List<Driver>> {
         return repo[teamName]
             ?.let {
-                if(active != null && driver != null){
-                    Optional.of(it.filter { dr -> dr.name.contains(driver) && (dr.active == active) })
-                     }
-                else if(active!=null){
-                    Optional.of(it.filter { it.active==active })
-                }
-                else if (driver!=null) {
-                    Optional.of(it.filter { it.name==driver })
+                if (active != false && driver != null) {
+                    println("heye1")
+                    // retrieves a driver that is active
+                    Optional.of(it.filter { dr -> dr.name.contains(driver) && dr.active == active })
+                } else if (driver != null) {
+                    println("heye2")
+                    // retrieves a single driver
+                    Optional.of(it.filter { dr -> dr.name == driver })
+                } else if (active != false) {
+                    println("heye3").also { println(driver).also { println(active) } }
+                    // retrieves all active drivers for this team
+                    Optional.of(it.filter { dr -> dr.active == active })
                 } else {
+                    println("heye4")
+                    // retrieves the full team
                     Optional.of(it)
                 }
-            }
-            ?: Optional.empty()
+            } ?: Optional.empty()
     }
 
     /**
      * Example:
      *   curl --header "Content-Type: application/json" \
      *     --request PUT \
-     *     --data '{"driverId": "7", "name":"Carlos Sainz","carNumber":"58F", "teamNumber":"4"}' \
+     *     --data '{"driverId": "7", "name":"Carlos Sainz","carPrice":"20.01", "active":"true", "nrTrophies":"3"}' \
      *     http://localhost:4000/teams/Ferrari/drivers/7
      */
     @Synchronized
@@ -69,9 +75,31 @@ class Formula1Controller {
         @ArBody dr: Driver,
     ): Optional<Driver> {
         if (driverId != dr.driverId) return Optional.empty()
-        val stds = repo[teamName] ?: emptyList()
-        repo[teamName] = stds.filter { it.driverId != driverId } + dr
+        val drivers = repo[teamName] ?: emptyList()
+        repo[teamName] = drivers.filter { it.driverId != driverId } + dr
         return Optional.of(dr)
+    }
+
+    @Synchronized
+    @AutoRouter("/teams/{teamName}/drivers/{driverId}", method = ArVerb.PUT)
+    fun addDriverJoinDate(
+        @ArRoute teamName: String,
+        @ArRoute driverId: Int,
+        @ArQuery joinDate: NotPrimitiveDate,
+    ): Optional<Driver> {
+        // Empty endpoint for testing purposes
+        return Optional.empty()
+    }
+
+    @Synchronized
+    @AutoRouter("/teams/{teamName}/drivers/{driverId}/races", method = ArVerb.PUT)
+    fun addDriverAndRace(
+        @ArRoute teamName: String,
+        @ArRoute driverId: Int,
+        @ArBody dr: Driver,
+        @ArBody raceTrack: RaceTrack
+    ): Optional<List<Any>> {
+        return Optional.of(listOf(dr, raceTrack))
     }
 
     /**
@@ -84,10 +112,9 @@ class Formula1Controller {
         @ArRoute teamName: String,
         @ArRoute driverId: Int
     ): Optional<Driver> {
-        val stds = repo[teamName] ?: return Optional.empty()
-        val s = stds.firstOrNull { it.driverId == driverId } ?: return Optional.empty()
-        repo[teamName] = stds.filter { it.driverId != driverId }
+        val drivers = repo[teamName] ?: return Optional.empty()
+        val s = drivers.firstOrNull { it.driverId == driverId } ?: return Optional.empty()
+        repo[teamName] = drivers.filter { it.driverId != driverId }
         return Optional.of(s)
     }
 }
-//SInais sonoros responder C

@@ -4,7 +4,6 @@ import pt.isel.autorouter.annotations.ArBody;
 import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -16,7 +15,7 @@ import java.util.stream.Stream;
 
 public class AutoRouterReflect {
     public static Stream<ArHttpRoute> autorouterReflect(Object controller) {
-        // Filter methods that have autoroute annotation and have an Optional return type
+        // Filter methods that have autoroute annotation and have an <Optional> return type
         Stream<Method> methods = Arrays
                 .stream(controller.getClass().getDeclaredMethods())
                 .filter(m -> m.isAnnotationPresent(AutoRouter.class)
@@ -47,7 +46,7 @@ public class AutoRouterReflect {
                 // Added retrieved value to the array to be sent to the current method
                 args.add(value);
             }
-            System.out.println(args);
+            System.out.println("hello" + args);
             try {
                 // Args needs to be converted to Object[]
                 return (Optional<?>) m.invoke(target, args.toArray());
@@ -75,13 +74,17 @@ public class AutoRouterReflect {
                 // Ex: classroom -> l41d
                 String stringValue = mapArgs.get(param.getName());
                 // Check parameter type class
+                System.out.println(stringValue);
                 if (isPrimitiveOrStringType(param.getType())) {
+                    System.out.println("is primitive");
                     return convertStringToPrimitiveType(param.getType(), stringValue);
                 } else {
                     // Get declared constructors
                     Constructor<?>[] constructors = param.getType().getDeclaredConstructors();
+                    System.out.println("is not primitive");
+                    System.out.println(param.getType());
                     // Check if a parameter type has a constructor
-                    return constructors.length == 0 ? null : createNewInstance(param.getType(), constructors[0] ,mapArgs);
+                    return constructors.length == 0 ? null : createNewInstance(constructors[0], mapArgs);
                 }
             }
         }
@@ -114,16 +117,17 @@ public class AutoRouterReflect {
     }
 
     private static Object createNewInstance(
-            Class<?> receivedClass,
-            Constructor<?> constructor,
-            Map<String, String> argsValues
+        Constructor<?> constructor,
+        Map<String, String> argsValues
     ) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        System.out.println(argsValues);
         // Assert if the current constructor name equals the received class name.
         List<Object> args = new ArrayList<>();
         // Convert the string value of the parameters to their corresponding type
         for (Parameter constructorParam : constructor.getParameters()) {
             // Get constructor param name: Ex: nr
             String name = constructorParam.getName();
+            System.out.println(constructorParam.getType() + " -> " + argsValues.get(name));
             Object value = convertStringToPrimitiveType(constructorParam.getType(), argsValues.get(name));
             args.add(value);
         }

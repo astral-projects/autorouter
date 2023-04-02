@@ -2,7 +2,7 @@ package pt.isel.classroom
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class Student constructor(
+data class Student(
     @JsonProperty("nr") val nr: Int,
     @JsonProperty("name") val name: String,
     @JsonProperty("group") val group: Int,
