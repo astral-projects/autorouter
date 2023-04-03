@@ -1,16 +1,10 @@
 package pt.isel;
 
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Param;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.*;
 import pt.isel.autorouter.ArHttpRoute;
 import pt.isel.autorouter.AutoRouterDynamic;
 import pt.isel.autorouter.AutoRouterReflect;
+import pt.isel.classroom.ClassroomController;
 
 import java.util.Collections;
 import java.util.Map;
