@@ -1,5 +1,8 @@
 package pt.isel
 
+import pt.isel.autorouter.annotations.ArBody
+import pt.isel.autorouter.annotations.ArQuery
+import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.classroom.Student
 import java.util.*
 
@@ -17,7 +20,7 @@ class ClassroomControllerEmpty {
         )
     )
     @Synchronized
-    fun search(classroom: String, student: String?): Optional<List<Student>> {
+    fun search(@ArRoute classroom: String,@ArQuery student: String?): Optional<List<Student>> {
         return repo[classroom]
             ?.let {
                 if(student == null) Optional.of(it)
@@ -35,9 +38,9 @@ class ClassroomControllerEmpty {
      */
     @Synchronized
     fun addStudent(
-        classroom: String,
-        nr: Int,
-        s: Student
+        @ArRoute classroom: String,
+        @ArRoute nr: Int,
+        @ArBody s: Student
     ): Optional<Student> {
         return Optional.of(s)
     }
@@ -46,7 +49,7 @@ class ClassroomControllerEmpty {
      *   curl --request DELETE http://localhost:4000/classroom/i42d/students/4536
      */
     @Synchronized
-    fun removeStudent(classroom: String, nr: Int) : Optional<Student> {
+    fun removeStudent(@ArRoute classroom: String,@ArRoute nr: Int) : Optional<Student> {
         val stds = repo[classroom] ?: return Optional.empty()
         val s = stds.firstOrNull { it.nr == nr } ?: return Optional.empty()
         return Optional.of(s)

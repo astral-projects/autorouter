@@ -18,8 +18,10 @@ import java.util.stream.Stream;
 @State(Scope.Benchmark)
 public class AutoRouterBenchmark {
 
-    @Param({"baseline", "reflect", "dynamic"}) String approach;
-    @Param({"empty", "classroom"}) String domain;
+    //@Param({"baseline", "reflect", "dynamic"}) String approach;
+    //@Param({"empty", "classroom"}) String domain;
+    @Param({"reflect", "baseline"}) String approach;
+    @Param({"empty"}) String domain;
 
     ArHttpRoute addStudentHandler;
     ArHttpRoute searchDynamicHandler;
@@ -29,7 +31,7 @@ public class AutoRouterBenchmark {
         Object controller = domain.equals("empty") ? new ClassroomControllerEmpty() : new ClassroomController();
         return switch (approach) {
             case "reflect" -> new AutoRouterReflect().autorouterReflect(controller);
-            case "dynamic" -> new AutoRouterDynamic().autorouterDynamic(controller);
+            //case "dynamic" -> new AutoRouterDynamic().autorouterDynamic(controller);
             case "baseline" -> domain.equals("empty")
                     ? ClassroomBaselineHandlers.routes(new ClassroomControllerEmpty())
                     : ClassroomBaselineHandlers.routes(new ClassroomController());

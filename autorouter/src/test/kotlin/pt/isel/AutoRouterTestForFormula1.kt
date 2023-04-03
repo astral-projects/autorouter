@@ -7,6 +7,7 @@ import pt.isel.formula1.Driver
 import pt.isel.formula1.Formula1Controller
 import pt.isel.formula1.NotPrimitiveDate
 import pt.isel.formula1.RaceTrack
+import java.lang.reflect.InvocationTargetException
 import java.security.SecureRandom
 import java.time.LocalDate
 import kotlin.test.assertContentEquals
@@ -157,7 +158,7 @@ class AutoRouterTestForFormula1 {
         }
         // Create driver
         val newDriver = Driver(driverId, "driverName", 250.0, true, 3)
-
+        assertFailsWith<RuntimeException> {
             route.handler.handle(
                 mapOf("teamName" to team, "driverId" to "${newDriver.driverId}"),
                 emptyMap(),
@@ -170,7 +171,7 @@ class AutoRouterTestForFormula1 {
                     "carPrice" to "${newDriver.carPrice}",
                 )
             )
-
+        }
     }
 
     @Test
@@ -180,7 +181,7 @@ class AutoRouterTestForFormula1 {
         val route = routes.first {
             it.path == "/teams/{teamName}/drivers/{driverId}" && it.method == ArVerb.PUT
         }
-
+        assertFailsWith<NumberFormatException> {
             route.handler.handle(
                 mapOf("teamName" to team, "driverId" to randomNumber.toString()),
                 mapOf(
@@ -190,6 +191,7 @@ class AutoRouterTestForFormula1 {
                 ),
                 emptyMap()
             )
+        }
 
     }
 
