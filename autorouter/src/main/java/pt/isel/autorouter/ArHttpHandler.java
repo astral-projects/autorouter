@@ -10,5 +10,5 @@ public interface ArHttpHandler {
         Map<String, String> routeArgs,
         Map<String, String> queryArgs,
         Map<String, String> bodyArgs
-    ) throws InvocationTargetException, InstantiationException, IllegalAccessException;
+    ) ;
 }

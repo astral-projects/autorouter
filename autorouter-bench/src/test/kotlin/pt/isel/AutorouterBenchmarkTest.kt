@@ -4,6 +4,7 @@ import org.junit.Test
 import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.AutoRouterDynamic
 import pt.isel.autorouter.AutoRouterReflect
+import pt.isel.classroom.Student
 import java.util.Map
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -44,7 +45,7 @@ class AutorouterBenchmarkTest {
         val optional = addStudentReflect.handler.handle(
             mapOf("classroom" to "i42d", "nr" to "7646775"),
             emptyMap<String, String>(),
-            mapOf("name" to "Ze Gato", "group" to "11", "semester" to "3")
+            mapOf("nr" to  "7646775", "name" to "Ze Gato", "group" to "11", "semester" to "3")
         )
         assertEquals(
             Student(7646775, "Ze Gato", 11, 3),

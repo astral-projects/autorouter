@@ -11,7 +11,9 @@ import org.openjdk.jmh.annotations.State;
 import pt.isel.autorouter.ArHttpRoute;
 import pt.isel.autorouter.AutoRouterDynamic;
 import pt.isel.autorouter.AutoRouterReflect;
+import pt.isel.classroom.ClassroomController;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +56,7 @@ public class AutoRouterBenchmark {
         return addStudentHandler.handler().handle(
                 Map.of("classroom", "i42d", "nr", "7646775"),
                 Collections.emptyMap(),
-                Map.of("name", "Ze Gato", "group", "11","semester", "3")
+                Map.of("nr", "7646775","name", "Ze Gato", "group", "11","semester", "3")
         );
     }
     @Benchmark

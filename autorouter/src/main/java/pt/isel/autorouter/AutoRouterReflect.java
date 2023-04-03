@@ -42,7 +42,12 @@ public class AutoRouterReflect {
             // Iterate through all parameters
             System.out.println("Method: " + Arrays.toString(m.getParameters()));
             for (Parameter param : m.getParameters()) {
-                Object value = findParameterValueWithArAnnotation(param, requestArgs);
+                Object value = null;
+                try {
+                    value = findParameterValueWithArAnnotation(param, requestArgs);
+                } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
+                    throw new RuntimeException(e);
+                }
                 // Added retrieved value to the array to be sent to the current method
                 args.add(value);
             }
