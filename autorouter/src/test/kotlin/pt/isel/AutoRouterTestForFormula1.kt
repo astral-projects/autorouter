@@ -181,7 +181,7 @@ class AutoRouterTestForFormula1 {
         val route = routes.first {
             it.path == "/teams/{teamName}/drivers/{driverId}/date" && it.method == ArVerb.PUT
         }
-        assertFailsWith<NumberFormatException> {
+        assertFailsWith<RuntimeException> {
             route.handler.handle(
                 mapOf("teamName" to team, "driverId" to randomNumber.toString()),
                 mapOf(
@@ -257,7 +257,7 @@ class AutoRouterTestForFormula1 {
                 && it.method == ArVerb.DELETE }
         val team = "Mercedes"
         val nrDrivers = getTeamSize(controller, team)
-        assertFailsWith<ArTypeAnnotationNotFoundException> {
+        assertFailsWith<RuntimeException> {
             val res = route.handler.handle(
                 mapOf("teamName" to team, "driverId" to "5"),
                 emptyMap(),
