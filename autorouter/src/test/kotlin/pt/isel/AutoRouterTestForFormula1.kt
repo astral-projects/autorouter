@@ -3,11 +3,11 @@ package pt.isel
 import org.junit.jupiter.api.Test
 import pt.isel.autorouter.ArVerb
 import pt.isel.autorouter.autorouterReflect
+import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException
 import pt.isel.formula1.Driver
 import pt.isel.formula1.Formula1Controller
 import pt.isel.formula1.NotPrimitiveDate
 import pt.isel.formula1.RaceTrack
-import java.lang.reflect.InvocationTargetException
 import java.security.SecureRandom
 import java.time.LocalDate
 import kotlin.test.assertContentEquals
@@ -179,7 +179,7 @@ class AutoRouterTestForFormula1 {
         val routes = controller.autorouterReflect().toList()
         val team = "RedBull"
         val route = routes.first {
-            it.path == "/teams/{teamName}/drivers/{driverId}" && it.method == ArVerb.PUT
+            it.path == "/teams/{teamName}/drivers/{driverId}/date" && it.method == ArVerb.PUT
         }
         assertFailsWith<NumberFormatException> {
             route.handler.handle(
@@ -192,7 +192,6 @@ class AutoRouterTestForFormula1 {
                 emptyMap()
             )
         }
-
     }
 
     @Test
@@ -249,5 +248,21 @@ class AutoRouterTestForFormula1 {
             listOf(newDriver, newRace),
             res.get()
         )
+    }
+
+    @Test
+    fun `check if an exception in thrown if a method parameter is not annotated with @Ar type annotation `() {
+        val routes = controller.autorouterReflect().toList()
+        val route = routes.first { it.path == "/teams/{teamName}/drivers/{driverId}/annot"
+                && it.method == ArVerb.DELETE }
+        val team = "Mercedes"
+        val nrDrivers = getTeamSize(controller, team)
+        assertFailsWith<ArTypeAnnotationNotFoundException> {
+            val res = route.handler.handle(
+                mapOf("teamName" to team, "driverId" to "5"),
+                emptyMap(),
+                emptyMap(),
+            )
+        }
     }
 }

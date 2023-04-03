@@ -17,5 +17,6 @@ public class QueryArgsGetter extends AbstractGetter {
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+
     }
 }

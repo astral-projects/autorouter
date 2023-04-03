@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 
 class AutorouterBenchmarkTest {
     private val classrooom = ClassroomControllerEmpty()
-    //private val dynamicRoutes = AutoRouterDynamic.autorouterDynamic(classrooom).toList()
+    // private val dynamicRoutes = AutoRouterDynamic.autorouterDynamic(classrooom).toList()
     private val reflectRoutes = AutoRouterReflect.autorouterReflect(classrooom).toList()
 
    // private var addStudentDynamic =
@@ -28,7 +28,7 @@ class AutorouterBenchmarkTest {
         reflectRoutes.first { r: ArHttpRoute -> r.funName == "search" }
 
 /*
-    @Test
+    // @Test
     fun dynamic_route_to_add_student() {
         val optional = addStudentDynamic.handler.handle(
             mapOf("classroom" to "i42d", "nr" to "7646775"),
@@ -53,7 +53,7 @@ class AutorouterBenchmarkTest {
         )
     }
     /*
-    @Test
+    // @Test
     fun dynamic_route_to_remove_student_on_empty() {
         val optional = removeDynamic.handler.handle(
             Map.of("classroom", "i41d", "nr", "7236"),
@@ -79,7 +79,7 @@ class AutorouterBenchmarkTest {
         )
     }
     /*
-    @Test
+    // @Test
     fun dynamic_route_to_search_on_empty() {
         val optional = searchDynamic.handler.handle(
             Map.of("classroom", "i41d"),

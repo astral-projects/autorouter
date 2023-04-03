@@ -2,11 +2,9 @@ package pt.isel;
 
 import org.openjdk.jmh.annotations.*;
 import pt.isel.autorouter.ArHttpRoute;
-import pt.isel.autorouter.AutoRouterDynamic;
 import pt.isel.autorouter.AutoRouterReflect;
 import pt.isel.classroom.ClassroomController;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -18,10 +16,10 @@ import java.util.stream.Stream;
 @State(Scope.Benchmark)
 public class AutoRouterBenchmark {
 
-    //@Param({"baseline", "reflect", "dynamic"}) String approach;
-    //@Param({"empty", "classroom"}) String domain;
     @Param({"reflect", "baseline"}) String approach;
-    @Param({"empty"}) String domain;
+    @Param({"empty", "classroom"}) String domain;
+    /*@Param({"reflect", "baseline"}) String approach;
+    @Param({"empty"}) String domain;*/
 
     ArHttpRoute addStudentHandler;
     ArHttpRoute searchDynamicHandler;

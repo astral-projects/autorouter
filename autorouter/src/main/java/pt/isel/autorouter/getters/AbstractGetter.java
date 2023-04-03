@@ -16,14 +16,11 @@ public abstract class AbstractGetter implements Getter {
 
     protected Object getValueFromMap(Map<String, String> map) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         String stringValue = map.get(param.getName());
-        System.out.println(stringValue);
         if (isPrimitiveOrStringType(param.getType())) {
-            System.out.print(" - is primitive");
             return convertStringToPrimitiveType(param.getType(), stringValue);
         } else {
             // Get declared constructors
             Constructor<?>[] constructors = param.getType().getDeclaredConstructors();
-            System.out.print(" - is not primitive" + param.getType());
             // Check if a parameter type has a constructor
             return constructors.length == 0 ? null : createNewInstance(constructors[0], map);
         }

@@ -33,18 +33,16 @@ public class AutoRouterReflect {
         String functionName = m.getName();
         ArVerb method = m.getAnnotation(AutoRouter.class).method();
         String path = m.getAnnotation(AutoRouter.class).value();
-        // Create a list to store retrieved values of annotated parameter with Ar type annotation
-        List<Object> args = new ArrayList<>();
         // Implement functional interface only method
         ArHttpHandler handler = (routeArgs, queryArgs, bodyArgs) -> {
-            System.out.println("Method: " + Arrays.toString(m.getParameters()));
+            // Create a list to store retrieved values of annotated parameter with Ar type annotation
+            List<Object> args;
             try {
-                args.addAll(getMethodArAnnotatedParameterValues(m, routeArgs, queryArgs, bodyArgs));
+                args = new ArrayList<>(getMethodArAnnotatedParameterValues(m, routeArgs, queryArgs, bodyArgs));
             } catch (ArTypeAnnotationNotFoundException e) {
                 throw new RuntimeException(e);
             }
             // Added retrieved value to the array to be sent to the current method
-            System.out.println(args);
             try {
                 // Args needs to be converted to Object[]
                 return (Optional<?>) m.invoke(target, args.toArray());
@@ -54,8 +52,6 @@ public class AutoRouterReflect {
         };
         return new ArHttpRoute(functionName, method, path, handler);
     }
-
-    private static final Map<Parameter, Getter> gettersMap = new HashMap<>();
 
     private static List<Object> getMethodArAnnotatedParameterValues(
             Method m,
@@ -86,15 +82,17 @@ public class AutoRouterReflect {
         return getter.getArgValue(routeArgs, queryArgs, bodyArgs);
     }
 
+    private final static Map<Parameter, Getter> gettersMap = new HashMap<>();
+
     private static Getter loadRouteArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new RouteArgsGetter(param));
+        return gettersMap.computeIfAbsent(param, (k) -> new RouteArgsGetter(k));
     }
 
     private static Getter loadQueryArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new QueryArgsGetter(param));
+        return gettersMap.computeIfAbsent(param, (k) -> new QueryArgsGetter(k));
     }
 
     private static Getter loadBodyArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new BodyArgsGetter(param));
+        return gettersMap.computeIfAbsent(param, (k) -> new BodyArgsGetter(k));
     }
 }

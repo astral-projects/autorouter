@@ -80,7 +80,7 @@ object Formula1Controller {
     }
 
     @Synchronized
-    @AutoRouter("/teams/{teamName}/drivers/{driverId}", method = ArVerb.PUT)
+    @AutoRouter("/teams/{teamName}/drivers/{driverId}/date", method = ArVerb.PUT)
     fun addDriverJoinDate(
         @ArRoute teamName: String,
         @ArRoute driverId: Int,
@@ -110,6 +110,22 @@ object Formula1Controller {
     fun removeDriver(
         @ArRoute teamName: String,
         @ArRoute driverId: Int
+    ): Optional<Driver> {
+        val drivers = repo[teamName] ?: return Optional.empty()
+        val s = drivers.firstOrNull { it.driverId == driverId } ?: return Optional.empty()
+        repo[teamName] = drivers.filter { it.driverId != driverId }
+        return Optional.of(s)
+    }
+
+    /**
+     * Example:
+     *   curl --request DELETE http://localhost:4000/teams/Mercedes/drivers/2
+     */
+    @Synchronized
+    @AutoRouter("/teams/{teamName}/drivers/{driverId}/annot", method = ArVerb.DELETE)
+    fun removeDriverWithoutAnnotation(
+        @ArRoute teamName: String,
+        driverId: Int
     ): Optional<Driver> {
         val drivers = repo[teamName] ?: return Optional.empty()
         val s = drivers.firstOrNull { it.driverId == driverId } ?: return Optional.empty()
