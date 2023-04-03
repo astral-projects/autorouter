@@ -1,6 +1,5 @@
 package pt.isel.autorouter;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -10,5 +9,5 @@ public interface ArHttpHandler {
         Map<String, String> routeArgs,
         Map<String, String> queryArgs,
         Map<String, String> bodyArgs
-    ) ;
+    );
 }

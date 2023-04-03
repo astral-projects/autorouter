@@ -5,7 +5,6 @@ import pt.isel.autorouter.annotations.ArBody
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
-import java.time.LocalDate
 import java.util.*
 
 object Formula1Controller {
