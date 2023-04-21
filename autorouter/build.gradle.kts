@@ -6,7 +6,7 @@ plugins {
     application
 }
 
-tasks.compileTestKotlin {
+tasks.compileTestKotlin{
     kotlinOptions {
         javaParameters = true
     }

@@ -1,4 +1,4 @@
-package pt.isel.autorouter.examples;
+package pt.isel.examples;
 
 import pt.isel.autorouter.ArHttpHandler;
 import pt.isel.classroom.ClassroomController;
@@ -28,8 +28,14 @@ public class HttpHandlerSearch implements ArHttpHandler {
 
     @Override
     public Optional<?> handle(Map<String, String> routeArgs, Map<String, String> queryArgs, Map<String, String> bodyArgs) {
+
+        // Get the classroom
         String Classroom = routeArgs.get("classroom");
+
+        // Get the student
         String Student = queryArgs.get("student");
+
+        // Search for the student
         return router.search(Classroom, Student);
     }
 }
