@@ -11,24 +11,24 @@ import kotlin.test.assertEquals
 
 class AutorouterBenchmarkTest {
     private val classrooom = ClassroomControllerEmpty()
-    // private val dynamicRoutes = AutoRouterDynamic.autorouterDynamic(classrooom).toList()
+    private val dynamicRoutes = AutoRouterDynamic.autorouterDynamic(classrooom).toList()
     private val reflectRoutes = AutoRouterReflect.autorouterReflect(classrooom).toList()
 
-   // private var addStudentDynamic =
-     //   dynamicRoutes.first { r: ArHttpRoute -> r.funName == "addStudent" }
+    private var addStudentDynamic =
+        dynamicRoutes.first { r: ArHttpRoute -> r.funName == "addStudent" }
     private var addStudentReflect =
         reflectRoutes.first { r: ArHttpRoute -> r.funName == "addStudent" }
-   // private var removeDynamic =
-     //   dynamicRoutes.first { r: ArHttpRoute -> r.funName == "removeStudent" }
+    private var removeDynamic =
+       dynamicRoutes.first { r: ArHttpRoute -> r.funName == "removeStudent" }
     private var removeReflect =
         reflectRoutes.first { r: ArHttpRoute -> r.funName == "removeStudent" }
-    //private var searchDynamic =
-      //  dynamicRoutes.first { r: ArHttpRoute -> r.funName == "search" }
+    private var searchDynamic =
+      dynamicRoutes.first { r: ArHttpRoute -> r.funName == "search" }
     private var searchReflect =
         reflectRoutes.first { r: ArHttpRoute -> r.funName == "search" }
 
-/*
-    // @Test
+
+    @Test
     fun dynamic_route_to_add_student() {
         val optional = addStudentDynamic.handler.handle(
             mapOf("classroom" to "i42d", "nr" to "7646775"),
@@ -39,7 +39,8 @@ class AutorouterBenchmarkTest {
             Student(7646775, "Ze Gato", 11, 3),
             optional.get()
         )
-    }*/
+    }
+
     @Test
     fun reflect_route_to_add_student() {
         val optional = addStudentReflect.handler.handle(

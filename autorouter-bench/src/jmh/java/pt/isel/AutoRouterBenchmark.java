@@ -2,6 +2,7 @@ package pt.isel;
 
 import org.openjdk.jmh.annotations.*;
 import pt.isel.autorouter.ArHttpRoute;
+import pt.isel.autorouter.AutoRouterDynamic;
 import pt.isel.autorouter.AutoRouterReflect;
 import pt.isel.classroom.ClassroomController;
 
@@ -29,7 +30,7 @@ public class AutoRouterBenchmark {
         Object controller = domain.equals("empty") ? new ClassroomControllerEmpty() : new ClassroomController();
         return switch (approach) {
             case "reflect" -> new AutoRouterReflect().autorouterReflect(controller);
-            //case "dynamic" -> new AutoRouterDynamic().autorouterDynamic(controller);
+            case "dynamic" -> new AutoRouterDynamic().autorouterDynamic(controller);
             case "baseline" -> domain.equals("empty")
                     ? ClassroomBaselineHandlers.routes(new ClassroomControllerEmpty())
                     : ClassroomBaselineHandlers.routes(new ClassroomController());
