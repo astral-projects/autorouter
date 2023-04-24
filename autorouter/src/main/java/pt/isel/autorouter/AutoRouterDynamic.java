@@ -3,11 +3,12 @@ package pt.isel.autorouter;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
 import org.cojen.maker.MethodMaker;
-import org.cojen.maker.Variable;
 import pt.isel.autorouter.annotations.ArBody;
 import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
+import pt.isel.autorouter.annotations.AutoRouter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -16,7 +17,26 @@ import java.util.stream.Stream;
 public class AutoRouterDynamic {
 
     public static Stream<ArHttpRoute> autorouterDynamic(Object controller) {
-        return Stream.empty();
+        // Filter methods that have autoroute annotation and have an <Optional> return type
+        Stream<Method> methods = Arrays
+                .stream(controller.getClass().getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(AutoRouter.class)
+                        && m.getReturnType() == Optional.class);
+        // For each method, create an ArHttpRoute instance
+        return methods.map(m -> {
+            try {
+                String functionName = m.getName();
+                ArVerb method = m.getAnnotation(AutoRouter.class).method();
+                String path = m.getAnnotation(AutoRouter.class).value();
+                ArHttpHandler handler = (ArHttpHandler) buildHandler(controller.getClass(), m)
+                    .finish()
+                    .getDeclaredConstructor(ArHttpHandler.class).newInstance(m);
+                return new ArHttpRoute(functionName, method, path, handler);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public static ClassMaker buildHandler(Class<?> routerClass, Method method) {
@@ -66,6 +86,7 @@ public class AutoRouterDynamic {
             var type = info.type();
             var value = info.map();
             // routeArgs.get("classroom");
+            // TODO("cast to primitive type or complex type")
             args.add(value.invoke("get", key).cast(type));
         }
         System.out.println(method.getName());
