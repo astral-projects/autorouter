@@ -21,7 +21,7 @@ dependencies {
     implementation("io.javalin:javalin:5.3.2")
     implementation("org.slf4j:slf4j-simple:2.0.3")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
-    implementation("org.cojen:cojen-maker:2.4.5")
+    implementation("org.cojen:cojen-maker:2.4.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.ow2.asm:asm:9.4")
     implementation("org.ow2.asm:asm-util:9.4")
