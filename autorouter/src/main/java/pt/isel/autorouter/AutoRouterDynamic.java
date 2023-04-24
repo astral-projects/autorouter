@@ -85,7 +85,6 @@ public class AutoRouterDynamic {
         return router.search(Classroom, Student);
     }
 }
-
 */
 
 }
