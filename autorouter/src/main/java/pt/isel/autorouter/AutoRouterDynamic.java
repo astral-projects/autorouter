@@ -9,8 +9,11 @@ import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static java.util.Arrays.stream;
 
 public class AutoRouterDynamic {
 
@@ -37,33 +40,24 @@ public class AutoRouterDynamic {
         ctor.field(routerMaker.name()).set(ctor.param(0));
 
         //Criacao da assintura do metoodo(handler)
-        MethodMaker handlerMaker = clazzMaker.addMethod(Optional.class, "handler", Map.class, Map.class, Map.class)
+        MethodMaker handlerMaker = clazzMaker.addMethod(Optional.class, "handle", Map.class, Map.class, Map.class)
                 .public_()
                 .override();
 
-        Map<String, Variable> mapArgs = new HashMap<>();
+        Map<String, Variable> mapArgs = new LinkedHashMap<>();
         // @ARroute routeargs  @ArQuery queryargs @Arbody bodyargs
-        Stream<Variable> mapa = Arrays //search 2 parameters /add 2 parmeters
-            .stream(fun.getParameters()).map(
-                //Todo: usar uma mapa para assiciar o parametro.getname() ao mapa que queremos
-                param -> {
-                   //param.getName()
-                    if (param.isAnnotationPresent(ArRoute.class)) {
-                        mapArgs.put(param.getName(), handlerMaker.param(0));
-                        return handlerMaker.param(0);
-                    } else if (param.isAnnotationPresent(ArQuery.class)) {
-                        mapArgs.put(param.getName(), handlerMaker.param(1));
-                        return handlerMaker.param(1);
-                    } else if (param.isAnnotationPresent(ArBody.class)) {
-                        mapArgs.put(param.getName(), handlerMaker.param(2));
-                        return handlerMaker.param(2);
-                    }
-                    return null;
-                }
-            );
-        // classroom -> routeargs
-        // String Classroom = routeArgs.get("classroom");?
-        // TODO(Buscar o get com o reflect ou pelo menos tentar)
+        for (Parameter param : fun.getParameters()) {
+            if (param.isAnnotationPresent(ArRoute.class)) {
+                mapArgs.put(param.getName(), handlerMaker.param(0));
+            } else if (param.isAnnotationPresent(ArQuery.class)) {
+                mapArgs.put(param.getName(), handlerMaker.param(1));
+            } else if (param.isAnnotationPresent(ArBody.class)) {
+                mapArgs.put(param.getName(), handlerMaker.param(2));
+            }
+        }
+        /*
+        For each param, associate the value from the map
+         */
         ArrayList<Object> args = new ArrayList<>();
         for (Map.Entry<String, Variable> entry : mapArgs.entrySet()) {
             String key = entry.getKey();
@@ -71,7 +65,11 @@ public class AutoRouterDynamic {
             // routeArgs.get("classroom");
             args.add(value.invoke("get", key));
         }
-        handlerMaker.field(routerMaker.name()).invoke(fun.getName(), args.toArray());
+        System.out.println(routerMaker.name());
+        System.out.println(fun.getName());
+        System.out.println(args);
+        var result = (handlerMaker.field(routerMaker.name()).invoke(fun.getName(), args.toArray())).cast(Optional.class);
+        handlerMaker.return_(result);
         return clazzMaker;
     }
 
