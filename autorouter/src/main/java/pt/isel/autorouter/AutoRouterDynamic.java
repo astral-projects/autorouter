@@ -10,13 +10,10 @@ import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
-
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
+import static java.util.Collections.emptyMap;
 
 public class AutoRouterDynamic {
     public static Stream<ArHttpRoute> autorouterDynamic(Object controller) {
@@ -28,7 +25,7 @@ public class AutoRouterDynamic {
         ClassMaker clazzMaker = ClassMaker.begin()
                 .public_()
                 .implement(ArHttpHandler.class);
-        //Criaçao do field Router--   private final ClassroomController router;
+        //Criaçao do field Router -- private final ClassroomController router;
         FieldMaker routerMaker = clazzMaker.addField(routerClass, "router")
                 .public_();
         /*
@@ -46,18 +43,19 @@ public class AutoRouterDynamic {
                 .public_()
                 .override();
 
+        Map<String, Variable> args = new HashMap<>();
         // @ARroute routeargs  @ArQuery queryargs @Arbody bodyargs
         Stream<Variable> mapa = Arrays //search 2 parameters /add 2 parmeters
                 .stream(fun.getParameters()).map(
                         //Todo: usar uma mapa para assiciar o parametro.getname() ao mapa que queremos
                         param -> {
-                           //param.getName()
+                            //param.getName()
                             if (param.isAnnotationPresent(ArRoute.class)) {
-                                return handlerMaker.param(0); //associacao do mapa ao parametro
+                                args.put(param.getName(), handlerMaker.param(0)); //associacao do mapa ao parametro
                             } else if (param.isAnnotationPresent(ArQuery.class)) {
-                                return handlerMaker.param(1);
+                                args.put(param.getName(), handlerMaker.param(1));
                             } else if (param.isAnnotationPresent(ArBody.class)) {
-                                return handlerMaker.param(2);
+                                args.put(param.getName(), handlerMaker.param(2));
                             }
                             try {
                                 throw new ArTypeAnnotationNotFoundException(
@@ -71,7 +69,8 @@ public class AutoRouterDynamic {
         return null;
     }
 
-    /*public class buildHttpHandlerSearch implements ArHttpHandler {
+/**
+ * public class buildHttpHandlerSearch implements ArHttpHandler {
     private final ClassroomController router;
 
     public HttpHandlerSearch(ClassroomController router) {
@@ -85,7 +84,6 @@ public class AutoRouterDynamic {
         return router.search(Classroom, Student);
     }
 }
-
 */
 
 }
