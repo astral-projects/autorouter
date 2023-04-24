@@ -11,9 +11,7 @@ public class AutoRouterDynamic {
     }
 
     public static ClassMaker buildHandler(Class<?> routerClass, Method fun) {
-        /**
-         * TO DO
-         */
+
         throw new UnsupportedOperationException();
     }
 }
