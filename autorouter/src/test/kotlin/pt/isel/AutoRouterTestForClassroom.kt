@@ -53,7 +53,7 @@ class AutoRouterTestForClassroom {
         )
     }
 
-    // @Test
+    @Test
     fun get_students_with_name_containing_word_via_dynamic() {
         get_students_with_name_containing_word(
             ClassroomController().autorouterDynamic().toList(),
