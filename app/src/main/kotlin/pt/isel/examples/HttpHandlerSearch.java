@@ -1,11 +1,7 @@
 package pt.isel.examples;
 
-import pt.isel.autorouter.ArHttpHandler;
-import pt.isel.classroom.ClassroomController;
-
 import java.util.Map;
 import java.util.Optional;
-
 
 /**
  * Um ciclo que gera codigo, quantas vezes quantos campos temos
@@ -19,10 +15,10 @@ import java.util.Optional;
 /**
  * Para cada metodo do controller vamos gerar uma class diferente. Quantas? Nao sabemos no futuro
  */
-public class HttpHandlerSearch implements ArHttpHandler {
-    private final ClassroomController router;
+public class HttpHandlerSearch implements ArHttpHandlerR {
+    private final ClassroomControllerR router;
 
-    public HttpHandlerSearch(ClassroomController router) {
+    public HttpHandlerSearch(ClassroomControllerR router) {
         this.router = router;
     }
 
