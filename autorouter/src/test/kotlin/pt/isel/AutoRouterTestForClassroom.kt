@@ -22,7 +22,7 @@ class AutoRouterTestForClassroom {
         )
     }
 
-    // @Test
+    @Test
     fun get_students_via_dynamic() {
         get_students(
             ClassroomController().autorouterDynamic().toList(),

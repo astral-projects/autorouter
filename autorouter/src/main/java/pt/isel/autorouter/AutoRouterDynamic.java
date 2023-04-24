@@ -3,11 +3,12 @@ package pt.isel.autorouter;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
 import org.cojen.maker.MethodMaker;
-import org.cojen.maker.Variable;
 import pt.isel.autorouter.annotations.ArBody;
 import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
+import pt.isel.autorouter.annotations.AutoRouter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -16,10 +17,29 @@ import java.util.stream.Stream;
 public class AutoRouterDynamic {
 
     public static Stream<ArHttpRoute> autorouterDynamic(Object controller) {
-        return Stream.empty();
+        // Filter methods that have autoroute annotation and have an <Optional> return type
+        Stream<Method> methods = Arrays
+                .stream(controller.getClass().getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(AutoRouter.class)
+                        && m.getReturnType() == Optional.class);
+        // For each method, create an ArHttpRoute instance
+        return methods.map(m -> {
+            try {
+                String functionName = m.getName();
+                ArVerb method = m.getAnnotation(AutoRouter.class).method();
+                String path = m.getAnnotation(AutoRouter.class).value();
+                ArHttpHandler handler = (ArHttpHandler) buildHandler(controller.getClass(), m)
+                    .finish()
+                    .getDeclaredConstructor(ArHttpHandler.class).newInstance(m);
+                return new ArHttpRoute(functionName, method, path, handler);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
-    public static ClassMaker buildHandler(Class<?> routerClass, Method fun) {
+    public static ClassMaker buildHandler(Class<?> routerClass, Method method) {
         //Criaçáo da classe -- public class buildHttpHandlerSearch implements ArHttpHandler
         ClassMaker clazzMaker = ClassMaker.begin()
                 .public_()
@@ -42,16 +62,16 @@ public class AutoRouterDynamic {
                 .public_()
                 .override();
 
-        Map<String, Variable> mapArgs = new LinkedHashMap<>();
+        Map<String, ParameterInfo> mapArgs = new LinkedHashMap<>();
         // @ARroute routeargs  @ArQuery queryargs @Arbody bodyargs
-        // @ARroute routeargs  @ArQuery queryargs @Arbody bodyargs
-        for (Parameter param : fun.getParameters()) {
+        for (Parameter param : method.getParameters()) {
+            // var x = param.getType();
             if (param.isAnnotationPresent(ArRoute.class)) {
-                mapArgs.put(param.getName(), handlerMaker.param(0));
+                mapArgs.put(param.getName(), new ParameterInfo(param.getType(), handlerMaker.param(0)));
             } else if (param.isAnnotationPresent(ArQuery.class)) {
-                mapArgs.put(param.getName(), handlerMaker.param(1));
+                mapArgs.put(param.getName(), new ParameterInfo(param.getType(), handlerMaker.param(1)));
             } else if (param.isAnnotationPresent(ArBody.class)) {
-                mapArgs.put(param.getName(), handlerMaker.param(2));
+                mapArgs.put(param.getName(), new ParameterInfo(param.getType(), handlerMaker.param(2)));
             }
         }
         // classroom -> routeargs
@@ -59,17 +79,19 @@ public class AutoRouterDynamic {
         // TODO(Buscar o get com o reflect ou pelo menos tentar)
         System.out.println(mapArgs.size());
         ArrayList<Object> args = new ArrayList<>();
-        for (Map.Entry<String, Variable> entry : mapArgs.entrySet()) {
+        for (Map.Entry<String, ParameterInfo> entry : mapArgs.entrySet()) {
+            // Example: Key: classroom, Value: routeArgs
             String key = entry.getKey();
-            Variable value = entry.getValue();
+            ParameterInfo info = entry.getValue();
+            var type = info.type();
+            var value = info.map();
             // routeArgs.get("classroom");
-            args.add(value.invoke("get", key));
+            // TODO("cast to primitive type or complex type")
+            args.add(value.invoke("get", key).cast(type));
         }
-        // return router.search(args[0], args[1]);
-        System.out.println(routerMaker.name());
-        System.out.println(fun.getName());
-        System.out.println(args);
-        handlerMaker.return_(handlerMaker.field(routerMaker.name()).invoke(fun.getName(), args.toArray()));
+        System.out.println(method.getName());
+        var result = handlerMaker.field(routerMaker.name()).invoke(method.getName(), args.toArray());
+        handlerMaker.return_(result.cast(Optional.class));
         return clazzMaker;
     }
 
@@ -89,6 +111,7 @@ public class AutoRouterDynamic {
         return router.search(args[0], args[1]);
     }
 }
+
 */
 
 }
