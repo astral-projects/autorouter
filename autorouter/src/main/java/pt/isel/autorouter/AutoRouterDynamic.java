@@ -28,10 +28,10 @@ public class AutoRouterDynamic {
                 String functionName = m.getName();
                 ArVerb method = m.getAnnotation(AutoRouter.class).method();
                 String path = m.getAnnotation(AutoRouter.class).value();
-                ArHttpHandler handler = (ArHttpHandler) buildHandler(controller.getClass(), m)
-                    .finish()
-                    .getDeclaredConstructor(ArHttpHandler.class).newInstance(m);
-                return new ArHttpRoute(functionName, method, path, handler);
+                var h1 =   buildHandler(controller.getClass(), m).finish();
+                //           CLASSROOM() criacao do construtor "primario"//adicionado a nova instacia por exemplo "search"
+                var handler =h1.getDeclaredConstructor(controller.getClass()).newInstance(controller);
+                return new ArHttpRoute(functionName, method, path,(ArHttpHandler) handler);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
                 throw new RuntimeException(e);
