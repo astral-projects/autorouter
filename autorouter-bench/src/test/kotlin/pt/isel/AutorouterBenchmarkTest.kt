@@ -53,8 +53,8 @@ class AutorouterBenchmarkTest {
             optional.get()
         )
     }
-    /*
-    // @Test
+
+     @Test
     fun dynamic_route_to_remove_student_on_empty() {
         val optional = removeDynamic.handler.handle(
             Map.of("classroom", "i41d", "nr", "7236"),
@@ -65,7 +65,7 @@ class AutorouterBenchmarkTest {
             Student(7236, "Jonas Mancas Lubri", 56, 4),
             optional.get()
         )
-    }*/
+    }
 
     @Test
     fun reflect_route_to_remove_student_on_empty() {
@@ -79,8 +79,8 @@ class AutorouterBenchmarkTest {
             optional.get()
         )
     }
-    /*
-    // @Test
+
+    @Test
     fun dynamic_route_to_search_on_empty() {
         val optional = searchDynamic.handler.handle(
             Map.of("classroom", "i41d"),
@@ -91,7 +91,7 @@ class AutorouterBenchmarkTest {
             listOf(Student(7236, "Jonas Mancas Lubri", 56, 4)),
             optional.get()
         )
-    }*/
+    }
 
     @Test
     fun reflect_route_to_search_on_empty() {

@@ -151,7 +151,7 @@ public class AutoRouterDynamic {
 
         var clazzParam = newInstanceMaker.param(0);
         var mapParam = newInstanceMaker.param(1);
-        Constructor<?> constructor = clazzParam.getClass().getDeclaredConstructors()[0];
+        Constructor<?> constructor = clazz.getDeclaredConstructors()[0]; // Modificado: use clazz em vez de clazzParam.getClass()
         var args = new ArrayList<>();
         for (Parameter constructorParam : constructor.getParameters()) {
             // Get constructor param name: Ex: nr
@@ -162,9 +162,11 @@ public class AutoRouterDynamic {
             var value = mapParam.invoke("get", name).cast(type);
             args.add(value);
         }
+
         System.out.println(clazz.getName());
         // return new Student(nr, name, group, semester);
-        var result = newInstanceMaker.invoke("Student", args.toArray());
+        var result = newInstanceMaker.new_(clazzParam.classType(),constructor.getParameterTypes());
+        //var result = newInstanceMaker.invoke(, args.toArray()); // Modificado: use constructor em vez de "Student"
         newInstanceMaker.return_(result.cast(Object.class));
         return clazzMaker;
     }
