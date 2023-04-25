@@ -4,7 +4,7 @@ import org.junit.Test
 import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.AutoRouterDynamic
 import pt.isel.autorouter.AutoRouterReflect
-import pt.isel.classroom.Student
+import pt.isel.autorouter.Student
 import java.util.Map
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

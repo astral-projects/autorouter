@@ -9,8 +9,10 @@ import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
 
-
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -84,26 +86,26 @@ public class AutoRouterDynamic {
             String key = entry.getKey();
             ParameterInfo info = entry.getValue();
             var type = info.type();
-            var value = info.map();
+            var map = info.map();
             if (isPrimitiveOrStringType(type)) {
-                args.add(value.invoke("get", key).cast(type));
+                args.add(map.invoke("get", key).cast(type));
             } else {
                 // Get declared constructors
                 Constructor<?>[] constructors = type.getDeclaredConstructors();
                 // Check if a parameter type has a constructor
-                /*
-                public Student createInstance(Map<String, String> bodyArgs) {
-                    int nr = Integer.parseInt(bodyArgs.get("nr"));
-                    String name = bodyArgs.get("name");
-                    int group = Integer.parseInt(bodyArgs.get("group"));
-                    int semester = Integer.parseInt(bodyArgs.get("semester"));
-                    return new Student(nr, name, group, semester);
-                }*/
+                if (constructors.length == 0) {
+                    throw new RuntimeException("No constructor found for type " + type.getName());
+                }
+                // Get the first constructor
+                Constructor<?> constructor = constructors[0];
+                Object instance = buildNewComplexInstance(type, constructor)
+                        .finish()
+                        .getDeclaredConstructor(type)
+                        .newInstance(type);
+                var val = instance.getClass().getMethod("createInstance", Map.class);
+                // TODO("chamar o invoke "createInstance" com o constructor e o map")
 
-                args.add(
-                        constructors.length == 0 ? null :
-                        buildNewComplexInstance(type, value)
-                );
+                args.add(val);
             }
         }
         System.out.println(method.getName());
@@ -136,32 +138,43 @@ public class AutoRouterDynamic {
      * }
      */
 
+    private static ClassMaker buildNewComplexInstance(
+            Class<?> clazz,
+            Constructor<?> constructor
+    ) {
+        ClassMaker clazzMaker = ClassMaker.begin()
+                .public_();
+        /*
+         *Construcao do construtor da classe
+         */
+        MethodMaker ctor = clazzMaker
+                .addConstructor()
+                .public_();
+        ctor.invokeSuperConstructor();
 
+        MethodMaker newInstanceMaker = clazzMaker.addMethod(Object.class, "createInstance", Map.class)
+                .public_();
 
-    public static Object buildNewComplexInstance(Class<?> targetClass, Variable mapVariable) {
-        try {
-            Constructor<?> constructor = targetClass.getDeclaredConstructors()[0];
-            Object[] constructorArgs = new Object[constructor.getParameterTypes().length];
-            int index = 0;
-
-            for (Class<?> argType : constructor.getParameterTypes()) {
-                String key = constructor.getParameters()[index].getName();
-                Variable value = mapVariable.invoke("get", key).cast(String.class);
-                if (argType == int.class || argType == Integer.class) {
-                    Variable integerClass = Expressions.constant(Integer.class);
-                    constructorArgs[index] = integerClass.invoke("parseInt", value).cast(int.class);
-                } else if (argType == String.class) {
-                    constructorArgs[index] = value;
-                }
-                // Add more types if needed
-                index++;
-            }
-            return constructor.newInstance(constructorArgs);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            return null;
+        Variable mapParam = newInstanceMaker.param(0);
+        ArrayList<Object> args = new ArrayList<>();
+        for (Parameter constructorParam : constructor.getParameters()) {
+            // Get constructor param name: Ex: nr
+            String name = constructorParam.getName();
+            // Get constructor param type: Ex: int
+            Class<?> type = constructorParam.getType();
+            // Get value from map: Ex: argsValues.get("nr")
+            Variable value = mapParam.invoke("get", name).cast(type);
+            args.add(value);
         }
+
+        System.out.println(constructor.getName());
+        // return new Student(nr, name, group, semester);
+        Variable result = newInstanceMaker.new_(clazz, args.toArray());
+        //var result = newInstanceMaker.invoke(, args.toArray()); // Modificado: use constructor em vez de "Student"
+        newInstanceMaker.return_(result.cast(Object.class));
+        return clazzMaker;
     }
+
 
 /**
  * public class buildHttpHandlerSearch implements ArHttpHandler {
