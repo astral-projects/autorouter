@@ -3,11 +3,13 @@ package pt.isel.autorouter;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
 import org.cojen.maker.MethodMaker;
+import org.cojen.maker.Variable;
 import pt.isel.autorouter.annotations.ArBody;
 import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -28,9 +30,9 @@ public class AutoRouterDynamic {
                 String functionName = m.getName();
                 ArVerb method = m.getAnnotation(AutoRouter.class).method();
                 String path = m.getAnnotation(AutoRouter.class).value();
-                var h1 =   buildHandler(controller.getClass(), m).finish();
-                //           CLASSROOM() criacao do construtor "primario"//adicionado a nova instacia por exemplo "search"
-                var handler =h1.getDeclaredConstructor(controller.getClass()).newInstance(controller);
+                var h1 = buildHandler(controller.getClass(), m).finish();
+                // CLASSROOM() criacao do construtor "primario"//adicionado a nova instacia por exemplo "search"
+                var handler = h1.getDeclaredConstructor(controller.getClass()).newInstance(controller);
                 return new ArHttpRoute(functionName, method, path,(ArHttpHandler) handler);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
@@ -39,7 +41,7 @@ public class AutoRouterDynamic {
         });
     }
 
-    public static ClassMaker buildHandler(Class<?> routerClass, Method method) {
+    public static ClassMaker buildHandler(Class<?> routerClass, Method method) throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         //Criaçáo da classe -- public class buildHttpHandlerSearch implements ArHttpHandler
         ClassMaker clazzMaker = ClassMaker.begin()
                 .public_()
@@ -85,15 +87,88 @@ public class AutoRouterDynamic {
             ParameterInfo info = entry.getValue();
             var type = info.type();
             var value = info.map();
-            // routeArgs.get("classroom");
-            // TODO("cast to primitive type or complex type")
-            args.add(value.invoke("get", key).cast(type));
+            if (isPrimitiveOrStringType(type)) {
+                args.add(value.invoke("get", key).cast(type));
+            } else {
+                // Get declared constructors
+                Constructor<?>[] constructors = type.getDeclaredConstructors();
+                // Check if a parameter type has a constructor
+                args.add(
+                        constructors.length == 0 ? null :
+                        buildNewComplexInstance(type, value)
+                                .finish()
+                                .getDeclaredConstructor(type)
+                                .newInstance(type)
+                );
+            }
         }
         System.out.println(method.getName());
         var result = handlerMaker.field(routerMaker.name()).invoke(method.getName(), args.toArray());
         handlerMaker.return_(result.cast(Optional.class));
         return clazzMaker;
     }
+
+    private static boolean isPrimitiveOrStringType(Class<?> clazz) {
+        if (Boolean.class == clazz || boolean.class == clazz) return true;
+        if (Byte.class == clazz || byte.class == clazz) return true;
+        if (Short.class == clazz || short.class == clazz) return true;
+        if (Integer.class == clazz || int.class == clazz) return true;
+        if (Long.class == clazz || long.class == clazz) return true;
+        if (Float.class == clazz || float.class == clazz) return true;
+        if (Double.class == clazz || double.class == clazz) return true;
+        return String.class == clazz;
+    }
+
+    /**
+     * public class buildNewComplexInstance {
+     *   public Object createInstance(Student student, Map<String, String> bodyArgs) {
+     *   // for each class parameter
+     *          var nr = parseInt(bodyArgs.get("nr"));
+     *          var name = bodyArgs.get("name");
+     *          var group = parseInt(bodyArgs.get("group"));
+     *          var semester = parseInt(bodyArgs.get("semester"));
+     *       return new Student(nr, name, group, semester);
+     *   }
+     * }
+     */
+
+    private static ClassMaker buildNewComplexInstance(
+            Class<?> clazz,
+            Variable map
+    ) {
+        ClassMaker clazzMaker = ClassMaker.begin()
+                .public_();
+        /*
+         *Construcao do construtor da classe
+         */
+        MethodMaker ctor = clazzMaker
+                .addConstructor()
+                .public_();
+        ctor.invokeSuperConstructor();
+
+        MethodMaker newInstanceMaker = clazzMaker.addMethod(Object.class, "createInstance", clazz, map)
+                .public_();
+
+        var clazzParam = newInstanceMaker.param(0);
+        var mapParam = newInstanceMaker.param(1);
+        Constructor<?> constructor = clazzParam.getClass().getDeclaredConstructors()[0];
+        var args = new ArrayList<>();
+        for (Parameter constructorParam : constructor.getParameters()) {
+            // Get constructor param name: Ex: nr
+            String name = constructorParam.getName();
+            // Get constructor param type: Ex: int
+            var type = constructorParam.getType();
+            // Get value from map: Ex: argsValues.get("nr")
+            var value = mapParam.invoke("get", name).cast(type);
+            args.add(value);
+        }
+        System.out.println(clazz.getName());
+        // return new Student(nr, name, group, semester);
+        var result = newInstanceMaker.invoke("Student", args.toArray());
+        newInstanceMaker.return_(result.cast(Object.class));
+        return clazzMaker;
+    }
+
 
 /**
  * public class buildHttpHandlerSearch implements ArHttpHandler {
