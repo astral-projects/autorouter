@@ -90,22 +90,18 @@ public class AutoRouterDynamic {
             if (isPrimitiveOrStringType(type)) {
                 args.add(map.invoke("get", key).cast(type));
             } else {
-                // Get declared constructors
-                Constructor<?>[] constructors = type.getDeclaredConstructors();
-                // Check if a parameter type has a constructor
-                if (constructors.length == 0) {
-                    throw new RuntimeException("No constructor found for type " + type.getName());
-                }
-                // Get the first constructor
-                Constructor<?> constructor = constructors[0];
-                Object instance = buildNewComplexInstance(type, constructor)
-                        .finish()
-                        .getDeclaredConstructor(type)
-                        .newInstance(type);
-                var val = instance.getClass().getMethod("createInstance", Map.class);
-                // TODO("chamar o invoke "createInstance" com o constructor e o map")
+                Constructor<?> constructor = type.getDeclaredConstructors()[0];
 
-                args.add(val);
+                ClassMaker instanceMaker = buildNewComplexInstance(type, constructor);
+                // Finish building the class and create an instance
+                Class<?> instanceClass = instanceMaker.finish();
+                Object instance = instanceClass.getConstructor().newInstance();
+
+                // Call the createInstance method on the instance with the map
+                Method createInstanceMethod = instanceClass.getMethod("createInstance", Map.class);
+                Object newInstance = createInstanceMethod.invoke(instance,  map);
+
+                args.add(newInstance);
             }
         }
         System.out.println(method.getName());
@@ -137,7 +133,6 @@ public class AutoRouterDynamic {
      *   }
      * }
      */
-
     private static ClassMaker buildNewComplexInstance(
             Class<?> clazz,
             Constructor<?> constructor
@@ -171,7 +166,7 @@ public class AutoRouterDynamic {
         // return new Student(nr, name, group, semester);
         Variable result = newInstanceMaker.new_(clazz, args.toArray());
         //var result = newInstanceMaker.invoke(, args.toArray()); // Modificado: use constructor em vez de "Student"
-        newInstanceMaker.return_(result.cast(Object.class));
+        newInstanceMaker.return_(result);
         return clazzMaker;
     }
 
