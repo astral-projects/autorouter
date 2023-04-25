@@ -9,10 +9,8 @@ import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -93,12 +91,18 @@ public class AutoRouterDynamic {
                 // Get declared constructors
                 Constructor<?>[] constructors = type.getDeclaredConstructors();
                 // Check if a parameter type has a constructor
+                /*
+                public Student createInstance(Map<String, String> bodyArgs) {
+                    int nr = Integer.parseInt(bodyArgs.get("nr"));
+                    String name = bodyArgs.get("name");
+                    int group = Integer.parseInt(bodyArgs.get("group"));
+                    int semester = Integer.parseInt(bodyArgs.get("semester"));
+                    return new Student(nr, name, group, semester);
+                }*/
+
                 args.add(
                         constructors.length == 0 ? null :
                         buildNewComplexInstance(type, value)
-                                .finish()
-                                .getDeclaredConstructor(type)
-                                .newInstance(type)
                 );
             }
         }
@@ -132,45 +136,32 @@ public class AutoRouterDynamic {
      * }
      */
 
-    private static ClassMaker buildNewComplexInstance(
-            Class<?> clazz,
-            Variable map
-    ) {
-        ClassMaker clazzMaker = ClassMaker.begin()
-                .public_();
-        /*
-         *Construcao do construtor da classe
-         */
-        MethodMaker ctor = clazzMaker
-                .addConstructor()
-                .public_();
-        ctor.invokeSuperConstructor();
 
-        MethodMaker newInstanceMaker = clazzMaker.addMethod(Object.class, "createInstance", clazz, map)
-                .public_();
 
-        var clazzParam = newInstanceMaker.param(0);
-        var mapParam = newInstanceMaker.param(1);
-        Constructor<?> constructor = clazz.getDeclaredConstructors()[0]; // Modificado: use clazz em vez de clazzParam.getClass()
-        var args = new ArrayList<>();
-        for (Parameter constructorParam : constructor.getParameters()) {
-            // Get constructor param name: Ex: nr
-            String name = constructorParam.getName();
-            // Get constructor param type: Ex: int
-            var type = constructorParam.getType();
-            // Get value from map: Ex: argsValues.get("nr")
-            var value = mapParam.invoke("get", name).cast(type);
-            args.add(value);
+    public static Object buildNewComplexInstance(Class<?> targetClass, Variable mapVariable) {
+        try {
+            Constructor<?> constructor = targetClass.getDeclaredConstructors()[0];
+            Object[] constructorArgs = new Object[constructor.getParameterTypes().length];
+            int index = 0;
+
+            for (Class<?> argType : constructor.getParameterTypes()) {
+                String key = constructor.getParameters()[index].getName();
+                Variable value = mapVariable.invoke("get", key).cast(String.class);
+                if (argType == int.class || argType == Integer.class) {
+                    Variable integerClass = Expressions.constant(Integer.class);
+                    constructorArgs[index] = integerClass.invoke("parseInt", value).cast(int.class);
+                } else if (argType == String.class) {
+                    constructorArgs[index] = value;
+                }
+                // Add more types if needed
+                index++;
+            }
+            return constructor.newInstance(constructorArgs);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
         }
-
-        System.out.println(clazz.getName());
-        // return new Student(nr, name, group, semester);
-        var result = newInstanceMaker.new_(clazzParam.classType(),constructor.getParameterTypes());
-        //var result = newInstanceMaker.invoke(, args.toArray()); // Modificado: use constructor em vez de "Student"
-        newInstanceMaker.return_(result.cast(Object.class));
-        return clazzMaker;
     }
-
 
 /**
  * public class buildHttpHandlerSearch implements ArHttpHandler {
