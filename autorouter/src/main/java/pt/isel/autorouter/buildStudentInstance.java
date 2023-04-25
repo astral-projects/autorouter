@@ -1,6 +1,6 @@
-package pt.isel.examples;
+package pt.isel.autorouter;
 
-import pt.isel.classroom.Student;
+import pt.isel.autorouter.Student;
 
 import java.util.Map;
 
