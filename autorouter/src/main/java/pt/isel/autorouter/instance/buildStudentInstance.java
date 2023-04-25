@@ -1,4 +1,4 @@
-package pt.isel.autorouter;
+package pt.isel.autorouter.instance;
 
 import pt.isel.autorouter.Student;
 

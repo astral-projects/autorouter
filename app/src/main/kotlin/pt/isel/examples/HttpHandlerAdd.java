@@ -2,7 +2,7 @@ package pt.isel.examples;
 
 import pt.isel.autorouter.ArHttpHandler;
 import pt.isel.classroom.ClassroomController;
-import pt.isel.classroom.Student;
+import pt.isel.autorouter.Student;
 
 import java.util.Map;
 import java.util.Optional;
