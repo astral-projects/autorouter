@@ -131,19 +131,16 @@ public class AutoRouterDynamic {
     ) {
         Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
         ArrayList<Object> args = new ArrayList<>();
-        String[] myArray = new String[] {"nr", "name", "group", "semester"};
-        int i = 0;
+
         for (Parameter constructorParam : constructor.getParameters()) {
             // Get a constructor param name: Ex: nr
-          //  String paramName = myArray[i]; //arg0 // [nr, name, group, semester]
             String paramName = constructorParam.getName();
             // Get a constructor param type
             // : Ex: int
             Class<?> type = constructorParam.getType();
             Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
             args.add(simpleTypeInstance);
-            i++;
-        }
+       }
         // return new Student(nr, name, group, semester);
         return handlerMaker.new_(clazz, args.toArray());
     }
@@ -164,11 +161,6 @@ public class AutoRouterDynamic {
         return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
     }
 
-    private static String capitalize(String s) {
-        char firstChar = s.charAt(0);
-        return Character.toUpperCase(firstChar) + s.substring(1);
-    }
-
     private static boolean isPrimitiveOrStringType(Class<?> clazz) {
         if (Boolean.class == clazz || boolean.class == clazz) return true;
         if (Byte.class == clazz || byte.class == clazz) return true;
@@ -180,22 +172,4 @@ public class AutoRouterDynamic {
         return String.class == clazz;
     }
 }
-
-/**
- * public class buildHttpHandlerSearch implements ArHttpHandler {
- private final ClassroomController router;
-
- public HttpHandlerSearch(ClassroomController router) {
- this.router = router;
- }
-
- @Override public Optional<?> handle(Map<String, String> routeArgs, Map<String, String> queryArgs, Map<String, String> bodyArgs) {
- // for -> args
- String Classroom = routeArgs.get("classroom");
- String Student = queryArgs.get("student");
-
- return router.search(args[0], args[1]);
- }
- }
- */
 
