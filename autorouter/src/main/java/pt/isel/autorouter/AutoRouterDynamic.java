@@ -9,10 +9,7 @@ import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -30,10 +27,10 @@ public class AutoRouterDynamic {
                 String functionName = m.getName();
                 ArVerb method = m.getAnnotation(AutoRouter.class).method();
                 String path = m.getAnnotation(AutoRouter.class).value();
-                var h1 = buildHandler(controller.getClass(), m).finish();
-                // CLASSROOM() criacao do construtor "primario"//adicionado a nova instacia por exemplo "search"
-                var handler = h1.getDeclaredConstructor(controller.getClass()).newInstance(controller);
-                return new ArHttpRoute(functionName, method, path,(ArHttpHandler) handler);
+                // build handler class dynamically and instantiate it
+                Class<?> classHandler = buildHandler(controller.getClass(), m).finish();
+                Object handler = classHandler.getDeclaredConstructor(controller.getClass()).newInstance(controller);
+                return new ArHttpRoute(functionName, method, path, (ArHttpHandler) handler);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
                 throw new RuntimeException(e);
@@ -41,73 +38,138 @@ public class AutoRouterDynamic {
         });
     }
 
-    public static ClassMaker buildHandler(Class<?> routerClass, Method method) throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    /**
+     * Builds a class that implements the ArHttpHandler interface dynamically.
+     * @param routerClass - the class of the router that will be injected in the handler.
+     * @param method - the method that will be invoked in the handler.
+     * @return the ClassMaker instance that represents the class that implements the functional **ArHttpHandler**
+     * interface which was created dynamically.
+     */
+    public static ClassMaker buildHandler(Class<?> routerClass, Method method) {
         //Criaçáo da classe -- public class buildHttpHandlerSearch implements ArHttpHandler
         ClassMaker clazzMaker = ClassMaker.begin()
                 .public_()
                 .implement(ArHttpHandler.class);
-        //Criaçao do field Router--   private final ClassroomController router;
+
+        // Create the router field -> private Router router;
         FieldMaker routerMaker = clazzMaker.addField(routerClass, "router")
                 .public_();
-        /*
-         *Construcao do construtor da classe
-         */
+
+        // Create the constructor
         MethodMaker ctor = clazzMaker
                 .addConstructor(routerClass)
                 .public_();
-        ctor.invokeSuperConstructor(); //vai buscar o construtor defaul da class base pq nao tem parametros
-        //Inicia o field router do constructor  this.router = router;
+
+        // Invoke the super constructor
+        ctor.invokeSuperConstructor();
+
+        // Set the router field in the constructor -> this.router = router;
         ctor.field(routerMaker.name()).set(ctor.param(0));
 
-        //Criacao da assintura do metodo(handler)
+        // Implementation of the handle method present in the ArHttpHandler interface
         MethodMaker handlerMaker = clazzMaker.addMethod(Optional.class, "handle", Map.class, Map.class, Map.class)
                 .public_()
                 .override();
 
         Map<String, ParameterInfo> mapArgs = new LinkedHashMap<>();
-        // @ARroute routeargs  @ArQuery queryargs @Arbody bodyargs
+        // For each parameter ArType annotation, save information about the parameter type and
+        // the map it should be retrieved from
         for (Parameter param : method.getParameters()) {
-            // var x = param.getType();
+            // String paramName = "classroom"
+            String paramName = param.getName();
+            // Class<?> paramType = java.lang.String
+            Class<?> paramType = param.getType();
             if (param.isAnnotationPresent(ArRoute.class)) {
-                mapArgs.put(param.getName(), new ParameterInfo(param.getType(), handlerMaker.param(0)));
+                mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(0)));
             } else if (param.isAnnotationPresent(ArQuery.class)) {
-                mapArgs.put(param.getName(), new ParameterInfo(param.getType(), handlerMaker.param(1)));
+                mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(1)));
             } else if (param.isAnnotationPresent(ArBody.class)) {
-                mapArgs.put(param.getName(), new ParameterInfo(param.getType(), handlerMaker.param(2)));
+                mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(2)));
             }
         }
-        // classroom -> routeargs
-        // String Classroom = routeArgs.get("classroom");?
-        // TODO(Buscar o get com o reflect ou pelo menos tentar)
-        System.out.println(mapArgs.size());
         ArrayList<Object> args = new ArrayList<>();
+        // For each parameter, get its value from the corresponding map
         for (Map.Entry<String, ParameterInfo> entry : mapArgs.entrySet()) {
-            // Example: Key: classroom, Value: routeArgs
-            String key = entry.getKey();
-            ParameterInfo info = entry.getValue();
-            var type = info.type();
-            var map = info.map();
+            // String paramName = "classroom"
+            String paramName = entry.getKey();
+            // ParameterInfo(java.lang.String, routeArgs)
+            ParameterInfo paramInfo = entry.getValue();
+            Class<?> type = paramInfo.type();
+            Variable map = paramInfo.map();
+            // Create a variable dynamically to store the parameter type
+            Variable typeVar = handlerMaker.var(type);
             if (isPrimitiveOrStringType(type)) {
-                args.add(map.invoke("get", key).cast(type));
+                // args.add(map.invoke("get", paramName).cast(type));
+                Variable simpleTypeInstance = getValueAndConvertToType(typeVar, map, paramName);
+                args.add(simpleTypeInstance);
             } else {
-                Constructor<?> constructor = type.getDeclaredConstructors()[0];
-
-                ClassMaker instanceMaker = buildNewComplexInstance(type, constructor);
-                // Finish building the class and create an instance
-                Class<?> instanceClass = instanceMaker.finish();
-                Object instance = instanceClass.getConstructor().newInstance();
-
-                // Call the createInstance method on the instance with the map
-                Method createInstanceMethod = instanceClass.getMethod("createInstance", Map.class);
-                Object newInstance = createInstanceMethod.invoke(instance,  map);
-
-                args.add(newInstance);
+                // int nr = Integer.valueOf(bodyArgs.get("nr"))
+                // String name = bodyArgs.get("name")
+                // int group = Integer.valueOf(bodyArgs.get("group"))
+                // int semester = Integer.valueOf(bodyArgs.get("semester"))
+                // new Student(nr, name, group, semester)
+                Variable complexTypeInstance = buildNewComplexInstance(handlerMaker, type, map);
+                args.add(complexTypeInstance);
             }
         }
-        System.out.println(method.getName());
+        // router.search(classroom)
         var result = handlerMaker.field(routerMaker.name()).invoke(method.getName(), args.toArray());
+        // return Optional.of(result) (inside the handler)
         handlerMaker.return_(result.cast(Optional.class));
         return clazzMaker;
+    }
+
+    /**
+     * Builds a new instance of a complex type (non-primitive or String) dynamically.
+     * @param handlerMaker - the MethodMaker instance that represents the handle method being implemented.
+     * @param clazz - the class of the complex type that will be instantiated.
+     * @param map - the map that contains the values that will be used to instantiate the complex type.
+     * @return the Variable instance that represents the new instance of the complex type to be generated.
+     */
+    private static Variable buildNewComplexInstance(
+            MethodMaker handlerMaker,
+            Class<?> clazz,
+            Variable map
+    ) {
+        Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+        ArrayList<Object> args = new ArrayList<>();
+        for (Parameter constructorParam : constructor.getParameters()) {
+            // Get a constructor param name: Ex: nr
+            String paramName = constructorParam.getName();
+            // Get a constructor param type: Ex: int
+            Class<?> type = constructorParam.getType();
+            System.out.println(type.getSimpleName());
+            Variable typeVar = handlerMaker.var(type);
+            // TODO("getValueAndConvertToType calls convertToPrimitiveType if the value is not a String")
+            Variable simpleTypeInstance = getValueAndConvertToType(typeVar, map, paramName);
+            args.add(simpleTypeInstance);
+        }
+        // return new Student(nr, name, group, semester);
+        return handlerMaker.new_(clazz, args.toArray());
+    }
+
+    private static Variable convertToPrimitiveType(Variable type, Variable stringValue) {
+        // String stringValue = bodyArgs.get("nr")
+        // return Integer.parseInt(value)
+        TODO("8 primitives 8 var of handlermaker")
+        System.out.println(type.classType().getSimpleName()); // should be int
+        System.out.println(type.box().name()); // should be Integer
+        // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
+        return type.invoke("parseInt", stringValue);
+    }
+
+    private static Variable getValueAndConvertToType(Variable type, Variable map, String paramName) {
+        Variable stringValue = map.invoke("get", paramName);
+        if (type.classType() != String.class) {
+            return convertToPrimitiveType(type, stringValue);
+        } else {
+            return stringValue.cast(String.class);
+        }
+    }
+
+    private static String capitalize(String s) {
+        char firstChar = s.charAt(0);
+        return Character.toUpperCase(firstChar) + s.substring(1);
     }
 
     private static boolean isPrimitiveOrStringType(Class<?> clazz) {
@@ -120,74 +182,23 @@ public class AutoRouterDynamic {
         if (Double.class == clazz || double.class == clazz) return true;
         return String.class == clazz;
     }
-
-    /**
-     * public class buildNewComplexInstance {
-     *   public Object createInstance(Student student, Map<String, String> bodyArgs) {
-     *   // for each class parameter
-     *          var nr = parseInt(bodyArgs.get("nr"));
-     *          var name = bodyArgs.get("name");
-     *          var group = parseInt(bodyArgs.get("group"));
-     *          var semester = parseInt(bodyArgs.get("semester"));
-     *       return new Student(nr, name, group, semester);
-     *   }
-     * }
-     */
-    private static ClassMaker buildNewComplexInstance(
-            Class<?> clazz,
-            Constructor<?> constructor
-    ) {
-        ClassMaker clazzMaker = ClassMaker.begin()
-                .public_();
-        /*
-         *Construcao do construtor da classe
-         */
-        MethodMaker ctor = clazzMaker
-                .addConstructor()
-                .public_();
-        ctor.invokeSuperConstructor();
-
-        MethodMaker newInstanceMaker = clazzMaker.addMethod(Object.class, "createInstance", Map.class)
-                .public_();
-
-        Variable mapParam = newInstanceMaker.param(0);
-        ArrayList<Object> args = new ArrayList<>();
-        for (Parameter constructorParam : constructor.getParameters()) {
-            // Get constructor param name: Ex: nr
-            String name = constructorParam.getName();
-            // Get constructor param type: Ex: int
-            Class<?> type = constructorParam.getType();
-            // Get value from map: Ex: argsValues.get("nr")
-            Variable value = mapParam.invoke("get", name).cast(type);
-            args.add(value);
-        }
-
-        System.out.println(constructor.getName());
-        // return new Student(nr, name, group, semester);
-        Variable result = newInstanceMaker.new_(clazz, args.toArray());
-        //var result = newInstanceMaker.invoke(, args.toArray()); // Modificado: use constructor em vez de "Student"
-        newInstanceMaker.return_(result);
-        return clazzMaker;
-    }
-
+}
 
 /**
  * public class buildHttpHandlerSearch implements ArHttpHandler {
-    private final ClassroomController router;
+ private final ClassroomController router;
 
-    public HttpHandlerSearch(ClassroomController router) {
-        this.router = router;
-    }
+ public HttpHandlerSearch(ClassroomController router) {
+ this.router = router;
+ }
 
-    @Override
-    public Optional<?> handle(Map<String, String> routeArgs, Map<String, String> queryArgs, Map<String, String> bodyArgs) {
-        // for -> args
-        String Classroom = routeArgs.get("classroom");
-        String Student = queryArgs.get("student");
+ @Override public Optional<?> handle(Map<String, String> routeArgs, Map<String, String> queryArgs, Map<String, String> bodyArgs) {
+ // for -> args
+ String Classroom = routeArgs.get("classroom");
+ String Student = queryArgs.get("student");
 
-        return router.search(args[0], args[1]);
-    }
-}
-*/
+ return router.search(args[0], args[1]);
+ }
+ }
+ */
 
-}

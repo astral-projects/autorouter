@@ -54,7 +54,7 @@ class ClassroomControllerEmpty {
      */
     @Synchronized
     @AutoRouter("/classroom/{classroom}/students/{nr}", method = ArVerb.DELETE)
-    fun removeStudent(@ArRoute classroom: String,@ArRoute nr: Int) : Optional<Student> {
+    fun removeStudent(@ArRoute classroom: String, @ArRoute nr: Int) : Optional<Student> {
         val stds = repo[classroom] ?: return Optional.empty()
         val s = stds.firstOrNull { it.nr == nr } ?: return Optional.empty()
         return Optional.of(s)
