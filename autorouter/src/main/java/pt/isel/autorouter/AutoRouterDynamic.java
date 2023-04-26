@@ -150,12 +150,17 @@ public class AutoRouterDynamic {
 
     private static Variable convertToPrimitiveType(Variable type, Variable stringValue) {
         // String stringValue = bodyArgs.get("nr")
-        // return Integer.parseInt(value)
-        TODO("8 primitives 8 var of handlermaker")
+        /// return Integer.parseInt(value)
+        //TODO("8 primitives 8 var of handlermaker")
         System.out.println(type.classType().getSimpleName()); // should be int
         System.out.println(type.box().name()); // should be Integer
+        theNameTo parse = findPars();
         // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
         return type.invoke("parseInt", stringValue);
+    }
+
+    private static theNameTo findPars(String name) {
+       if (name.equals("int")) return parseInt;
     }
 
     private static Variable getValueAndConvertToType(Variable type, Variable map, String paramName) {
