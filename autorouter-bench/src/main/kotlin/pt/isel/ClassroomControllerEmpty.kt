@@ -5,7 +5,7 @@ import pt.isel.autorouter.annotations.ArBody
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
-import pt.isel.autorouter.Student
+import pt.isel.classroom.Student
 import java.util.*
 
 class ClassroomControllerEmpty {

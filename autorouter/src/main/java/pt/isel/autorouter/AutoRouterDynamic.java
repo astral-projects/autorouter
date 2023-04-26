@@ -135,8 +135,10 @@ public class AutoRouterDynamic {
         int i = 0;
         for (Parameter constructorParam : constructor.getParameters()) {
             // Get a constructor param name: Ex: nr
-            String paramName = myArray[i]; //arg0 // [nr, name, group, semester]
-            // Get a constructor param type: Ex: int
+          //  String paramName = myArray[i]; //arg0 // [nr, name, group, semester]
+            String paramName = constructorParam.getName();
+            // Get a constructor param type
+            // : Ex: int
             Class<?> type = constructorParam.getType();
             Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
             args.add(simpleTypeInstance);

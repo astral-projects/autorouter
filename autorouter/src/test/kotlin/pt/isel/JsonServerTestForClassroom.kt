@@ -8,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import pt.isel.autorouter.*
 import pt.isel.classroom.ClassroomController
-import pt.isel.autorouter.Student
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL

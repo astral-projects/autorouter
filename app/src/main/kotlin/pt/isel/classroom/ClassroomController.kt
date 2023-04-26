@@ -1,7 +1,6 @@
 package pt.isel.classroom
 
 import pt.isel.autorouter.ArVerb.*
-import pt.isel.autorouter.Student
 import pt.isel.autorouter.annotations.ArBody
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
