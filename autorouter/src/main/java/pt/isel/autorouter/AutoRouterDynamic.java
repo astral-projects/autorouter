@@ -89,6 +89,8 @@ public class AutoRouterDynamic {
         }
         ArrayList<Object> args = new ArrayList<>();
         // For each parameter, get its value from the corresponding map
+                //    classroom argspath       nr argspath                    s argsBody
+        // map [(parametro , mapaAssociado) , (parametro , mapaAssociado), (parametro , mapaAssociado)]
         for (Map.Entry<String, ParameterInfo> entry : mapArgs.entrySet()) {
             // String paramName = "classroom"
             String paramName = entry.getKey();
@@ -107,6 +109,7 @@ public class AutoRouterDynamic {
                 // int semester = Integer.valueOf(bodyArgs.get("semester"))
                 // new Student(nr, name, group, semester)
                 Variable complexTypeInstance = buildNewComplexInstance(handlerMaker, type, map);
+                // new Student(nr, name, group, semester)
                 args.add(complexTypeInstance);
             }
         }
@@ -147,8 +150,11 @@ public class AutoRouterDynamic {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
         // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
+        //var nr :Int ---  var s :Student
         if (type == int.class) {
-            return handlerMaker.var(Integer.class).invoke("parseInt", stringValue);
+            var xpto= handlerMaker.var(Integer.class);
+                             //Integer.parseInt
+            return xpto.invoke("parseInt", stringValue.cast(String.class));
         }
         return null;
     }
