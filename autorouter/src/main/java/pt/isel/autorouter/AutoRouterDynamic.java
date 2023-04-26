@@ -107,7 +107,7 @@ public class AutoRouterDynamic {
                 // int semester = Integer.valueOf(bodyArgs.get("semester"))
                 // new Student(nr, name, group, semester)
                 Variable complexTypeInstance = buildNewComplexInstance(handlerMaker, type, map);
-                args.add(complexTypeInstance.cast(Student.class));
+                args.add(complexTypeInstance);
             }
         }
         // router.search(classroom)
@@ -131,22 +131,25 @@ public class AutoRouterDynamic {
     ) {
         Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
         ArrayList<Object> args = new ArrayList<>();
+        String[] myArray = new String[] {"nr", "name", "group", "semester"};
+        int i = 0;
         for (Parameter constructorParam : constructor.getParameters()) {
             // Get a constructor param name: Ex: nr
-            String paramName = constructorParam.getName(); //arg0 // [nr, name, group, semester]
+            String paramName = myArray[i]; //arg0 // [nr, name, group, semester]
             // Get a constructor param type: Ex: int
             Class<?> type = constructorParam.getType();
             Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
             args.add(simpleTypeInstance);
+            i++;
         }
         // return new Student(nr, name, group, semester);
-        return handlerMaker.new_(Student.class, args.toArray());
+        return handlerMaker.new_(clazz, args.toArray());
     }
 
     private static Variable getValueAndConvertToType(MethodMaker handlerMaker, Class<?> type, Variable map, String paramName) {
         Variable stringValue = map.invoke("get", paramName);
         if (type != String.class) {
-            return convertToPrimitiveType(handlerMaker, type, stringValue).cast(int.class);
+            return convertToPrimitiveType(handlerMaker, type, stringValue);
         } else {
             return stringValue.cast(String.class);
         }
