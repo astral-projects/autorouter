@@ -96,11 +96,9 @@ public class AutoRouterDynamic {
             ParameterInfo paramInfo = entry.getValue();
             Class<?> type = paramInfo.type();
             Variable map = paramInfo.map();
-            // Create a variable dynamically to store the parameter type
-            Variable typeVar = handlerMaker.var(type);
             if (isPrimitiveOrStringType(type)) {
                 // args.add(map.invoke("get", paramName).cast(type));
-                Variable simpleTypeInstance = getValueAndConvertToType(typeVar, map, paramName, handlerMaker);
+                Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
                 args.add(simpleTypeInstance);
             } else {
                 // int nr = Integer.valueOf(bodyArgs.get("nr"))
@@ -138,33 +136,27 @@ public class AutoRouterDynamic {
             String paramName = constructorParam.getName();
             // Get a constructor param type: Ex: int
             Class<?> type = constructorParam.getType();
-            System.out.println(type.getSimpleName());
-            Variable typeVar = handlerMaker.var(type);
-            // TODO("getValueAndConvertToType calls convertToPrimitiveType if the value is not a String")
-            Variable simpleTypeInstance = getValueAndConvertToType(typeVar, map, paramName, handlerMaker);
+            Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
             args.add(simpleTypeInstance);
         }
         // return new Student(nr, name, group, semester);
         return handlerMaker.new_(clazz, args.toArray());
     }
 
-    // Convert a primitive type to its wrapper type
-    private static Variable convertToWrapperType(Variable type, MethodMaker method) {
-        Class<?> classType = type.classType();
-        if (classType == Integer.class) return method.var(int.class);
-        if (classType == Long.class) return method.var(long.class);
-        if (classType == Double.class) return method.var(double.class);
-        if (classType == Float.class) return method.var(float.class);
-        if (classType == Boolean.class) return method.var(boolean.class);
-        if (classType == Byte.class) return method.var(byte.class);
-        if (classType == Short.class) return method.var(short.class);
-        else return method.var(classType);
+    private static Variable convertToPrimitiveType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
+        // String stringValue = bodyArgs.get("nr")
+        // return Integer.parseInt(value)
+        // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
+        if (type == int.class) {
+            return handlerMaker.var(Integer.class).invoke("parseInt", stringValue);
+        }
+        return null;
     }
 
-    private static Variable getValueAndConvertToType(Variable type, Variable map, String paramName, MethodMaker method) {
+    private static Variable getValueAndConvertToType(MethodMaker handlerMaker, Class<?> type, Variable map, String paramName) {
         Variable stringValue = map.invoke("get", paramName);
-        if (type.classType() != String.class) {
-            return convertToWrapperType(type, method);
+        if (type != String.class) {
+            return convertToPrimitiveType(handlerMaker, type, stringValue);
         } else {
             return stringValue.cast(String.class);
         }
