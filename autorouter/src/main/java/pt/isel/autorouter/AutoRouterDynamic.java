@@ -89,8 +89,6 @@ public class AutoRouterDynamic {
         }
         ArrayList<Object> args = new ArrayList<>();
         // For each parameter, get its value from the corresponding map
-                //    classroom argspath       nr argspath                    s argsBody
-        // map [(parametro , mapaAssociado) , (parametro , mapaAssociado), (parametro , mapaAssociado)]
         for (Map.Entry<String, ParameterInfo> entry : mapArgs.entrySet()) {
             // String paramName = "classroom"
             String paramName = entry.getKey();
@@ -109,8 +107,7 @@ public class AutoRouterDynamic {
                 // int semester = Integer.valueOf(bodyArgs.get("semester"))
                 // new Student(nr, name, group, semester)
                 Variable complexTypeInstance = buildNewComplexInstance(handlerMaker, type, map);
-                // new Student(nr, name, group, semester)
-                args.add(complexTypeInstance);
+                args.add(complexTypeInstance.cast(Student.class));
             }
         }
         // router.search(classroom)
@@ -143,29 +140,23 @@ public class AutoRouterDynamic {
             args.add(simpleTypeInstance);
         }
         // return new Student(nr, name, group, semester);
-        return handlerMaker.new_(clazz, args.toArray());
+        return handlerMaker.new_(Student.class, args.toArray());
+    }
+
+    private static Variable getValueAndConvertToType(MethodMaker handlerMaker, Class<?> type, Variable map, String paramName) {
+        Variable stringValue = map.invoke("get", paramName);
+        if (type != String.class) {
+            return convertToPrimitiveType(handlerMaker, type, stringValue).cast(int.class);
+        } else {
+            return stringValue.cast(String.class);
+        }
     }
 
     private static Variable convertToPrimitiveType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
         // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
-        //var nr :Int ---  var s :Student
-        if (type == int.class) {
-            var xpto= handlerMaker.var(Integer.class);
-                             //Integer.parseInt
-            return xpto.invoke("parseInt", stringValue.cast(String.class));
-        }
-        return null;
-    }
-
-    private static Variable getValueAndConvertToType(MethodMaker handlerMaker, Class<?> type, Variable map, String paramName) {
-        Variable stringValue = map.invoke("get", paramName);
-        if (type != String.class) {
-            return convertToPrimitiveType(handlerMaker, type, stringValue);
-        } else {
-            return stringValue.cast(String.class);
-        }
+        return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
     }
 
     private static String capitalize(String s) {
