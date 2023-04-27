@@ -1,9 +1,7 @@
 package pt.isel
 
 import org.junit.jupiter.api.Test
-import pt.isel.autorouter.instance.buildStudentInstanceWithClass
-import pt.isel.autorouter.instance.buildStudentInstance
-import pt.isel.autorouter.instance.buildAnyInstanceWithClass
+import pt.isel.classroom.Student
 import kotlin.test.assertEquals
 
 class BuildInstanceWithClass {
