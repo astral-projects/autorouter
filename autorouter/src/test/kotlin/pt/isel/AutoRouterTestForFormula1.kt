@@ -100,8 +100,20 @@ class AutoRouterTestForFormula1 {
     }
 
     @Test
-    fun `remove a Mercedes driver by id`() {
-        val routes = controller.autorouterReflect().toList()
+    fun `remove driver with dynamic`() {
+        `remove a Mercedes driver by id`(
+            controller.autorouterDynamic().toList()
+        )
+    }
+
+    @Test
+    fun `remove driver with reflect`() {
+        `remove a Mercedes driver by id`(
+            controller.autorouterReflect().toList()
+        )
+    }
+
+    private fun `remove a Mercedes driver by id`(routes: List<ArHttpRoute>) {
         val route = routes.first { it.path == "/teams/{teamName}/drivers/{driverId}" && it.method == ArVerb.DELETE }
         val team = "Mercedes"
         val nrDrivers = getTeamSize(controller, team)
@@ -291,28 +303,6 @@ class AutoRouterTestForFormula1 {
                 emptyMap(),
             )
         }
-    }
-
-    @Test
-    fun `remove driver with dynamic`() {
-        removeDriverWithDynamic(
-            controller.autorouterDynamic().toList()
-        )
-    }
-
-    private fun removeDriverWithDynamic(routes: List<ArHttpRoute>) {
-        val team = "Mercedes"
-        val nrDrivers = getTeamSize(controller, team)
-        val route = routes.first { it.path == "/teams/{teamName}/drivers/{driverId}" && it.method == ArVerb.DELETE }
-        val res = route.handler.handle(
-            mapOf("teamName" to team, "driverId" to "5"),
-            emptyMap(),
-            emptyMap(),
-        )
-        assertEquals(
-            nrDrivers - 1,
-            getTeamSize(controller, team)
-        )
     }
 
 }
