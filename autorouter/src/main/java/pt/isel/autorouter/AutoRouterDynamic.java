@@ -148,13 +148,13 @@ public class AutoRouterDynamic {
     private static Variable getValueAndConvertToType(MethodMaker handlerMaker, Class<?> type, Variable map, String paramName) {
         Variable stringValue = map.invoke("get", paramName);
         if (type != String.class) {
-            return convertToWrapperType(handlerMaker, type, stringValue);
+            return convertToPrimitiveType(handlerMaker, type, stringValue);
         } else {
             return stringValue.cast(String.class);
         }
     }
 
-    private static Variable convertToWrapperType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
+    private static Variable convertToPrimitiveType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
         // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
