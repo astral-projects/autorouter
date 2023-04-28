@@ -164,19 +164,17 @@ public class AutoRouterDynamic {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
         // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
-        if (type == int.class || type== Integer.class) return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
-        if (type == long.class) return handlerMaker.var(Long.class).invoke("parseLong", stringValue.cast(String.class));
-        if (type == float.class) return handlerMaker.var(Float.class).invoke("parseFloat", stringValue.cast(String.class));
-        if (type == double.class) return handlerMaker.var(Double.class).invoke("parseDouble", stringValue.cast(String.class));
-        if (type == boolean.class || type==Boolean.class) return handlerMaker.var(Boolean.class).invoke("parseBoolean", stringValue.cast(String.class));
-        if (type == byte.class) return handlerMaker.var(Byte.class).invoke("parseByte", stringValue.cast(String.class));
-        if (type == short.class) return handlerMaker.var(Short.class).invoke("parseShort", stringValue.cast(String.class));
-        System.out.println(type);
+        if (type == int.class || type == Integer.class) return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
+        if (type == long.class || type == Long.class) return handlerMaker.var(Long.class).invoke("parseLong", stringValue.cast(String.class));
+        if (type == float.class || type == Float.class) return handlerMaker.var(Float.class).invoke("parseFloat", stringValue.cast(String.class));
+        if (type == double.class || type == Double.class) return handlerMaker.var(Double.class).invoke("parseDouble", stringValue.cast(String.class));
+        if (type == boolean.class || type == Boolean.class) return handlerMaker.var(Boolean.class).invoke("parseBoolean", stringValue.cast(String.class));
+        if (type == byte.class || type == Byte.class) return handlerMaker.var(Byte.class).invoke("parseByte", stringValue.cast(String.class));
+        if (type == short.class || type == Short.class) return handlerMaker.var(Short.class).invoke("parseShort", stringValue.cast(String.class));
         throw new RuntimeException("Unknown type: " + type);
     }
 
     private static boolean isPrimitiveOrStringType(Class<?> clazz) {
-        System.out.println(clazz);
         if (Boolean.class == clazz || boolean.class == clazz) return true;
         if (Byte.class == clazz || byte.class == clazz) return true;
         if (Short.class == clazz || short.class == clazz) return true;
