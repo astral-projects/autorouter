@@ -8,6 +8,7 @@ import pt.isel.autorouter.annotations.ArBody;
 import pt.isel.autorouter.annotations.ArQuery;
 import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
+import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -31,7 +32,7 @@ public class AutoRouterDynamic {
                 Class<?> classHandler = buildHandler(controller.getClass(), m).finish();
                 Object handler = classHandler.getDeclaredConstructor(controller.getClass()).newInstance(controller);
                 return new ArHttpRoute(functionName, method, path, (ArHttpHandler) handler);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | ArTypeAnnotationNotFoundException|
                      NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -45,7 +46,7 @@ public class AutoRouterDynamic {
      * @return the ClassMaker instance that represents the class that implements the functional **ArHttpHandler**
      * interface which was created dynamically.
      */
-    public static ClassMaker buildHandler(Class<?> routerClass, Method method) {
+    public static ClassMaker buildHandler(Class<?> routerClass, Method method) throws ArTypeAnnotationNotFoundException {
         //Criaçáo da classe -- public class buildHttpHandlerSearch implements ArHttpHandler
         ClassMaker clazzMaker = ClassMaker.begin()
                 .public_()
@@ -85,7 +86,10 @@ public class AutoRouterDynamic {
                 mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(1)));
             } else if (param.isAnnotationPresent(ArBody.class)) {
                 mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(2)));
+            }else{
+                throw new ArTypeAnnotationNotFoundException("Annotatiosn Required");
             }
+
         }
         ArrayList<Object> args = new ArrayList<>();
         // For each parameter, get its value from the corresponding map
@@ -96,6 +100,8 @@ public class AutoRouterDynamic {
             ParameterInfo paramInfo = entry.getValue();
             Class<?> type = paramInfo.type();
             Variable map = paramInfo.map();
+            System.out.println("Nome do parametro"+ paramName);
+            System.out.println("Nome do tipo " + type);
             if (isPrimitiveOrStringType(type)) {
                 // args.add(map.invoke("get", paramName).cast(type));
                 Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
@@ -158,17 +164,19 @@ public class AutoRouterDynamic {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
         // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
-        if (type == int.class) return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
+        if (type == int.class || type== Integer.class) return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
         if (type == long.class) return handlerMaker.var(Long.class).invoke("parseLong", stringValue.cast(String.class));
         if (type == float.class) return handlerMaker.var(Float.class).invoke("parseFloat", stringValue.cast(String.class));
         if (type == double.class) return handlerMaker.var(Double.class).invoke("parseDouble", stringValue.cast(String.class));
-        if (type == boolean.class) return handlerMaker.var(Boolean.class).invoke("parseBoolean", stringValue.cast(String.class));
+        if (type == boolean.class || type==Boolean.class) return handlerMaker.var(Boolean.class).invoke("parseBoolean", stringValue.cast(String.class));
         if (type == byte.class) return handlerMaker.var(Byte.class).invoke("parseByte", stringValue.cast(String.class));
         if (type == short.class) return handlerMaker.var(Short.class).invoke("parseShort", stringValue.cast(String.class));
+        System.out.println(type);
         throw new RuntimeException("Unknown type: " + type);
     }
 
     private static boolean isPrimitiveOrStringType(Class<?> clazz) {
+        System.out.println(clazz);
         if (Boolean.class == clazz || boolean.class == clazz) return true;
         if (Byte.class == clazz || byte.class == clazz) return true;
         if (Short.class == clazz || short.class == clazz) return true;
