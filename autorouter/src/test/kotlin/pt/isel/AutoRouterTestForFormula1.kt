@@ -2,10 +2,8 @@ package pt.isel
 
 import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.ArVerb
-import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.autorouterDynamic
 import pt.isel.autorouter.autorouterReflect
-import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException
 import pt.isel.formula1.Driver
 import pt.isel.formula1.Formula1Controller
 import pt.isel.formula1.NotPrimitiveDate
@@ -25,8 +23,17 @@ class AutoRouterTestForFormula1 {
     private val controller = Formula1Controller
 
     @Test
-    fun `get all drivers from the Ferrari team`() {
-        val routes = controller.autorouterReflect().toList()
+    fun `get all drivers from ferrari with reflect`(){
+        getAllDriversFromFerrari(controller.autorouterReflect().toList())
+    }
+
+    @Test
+    fun `get all drivers from ferrari with dynamic`(){
+        getAllDriversFromFerrari(controller.autorouterDynamic().toList())
+    }
+
+
+    private fun getAllDriversFromFerrari(routes:List<ArHttpRoute>) {
         val res = routes.first { it.path == "/teams/{teamName}" }.handler.handle(
             mapOf("teamName" to "Ferrari"),
             emptyMap(),
@@ -44,8 +51,17 @@ class AutoRouterTestForFormula1 {
     }
 
     @Test
-    fun `get driver named Versttappen`() {
-        val routes = controller.autorouterReflect().toList()
+    fun `get driver named Versttappen with reflect`(){
+        getDriverNamedVersstappen(controller.autorouterReflect().toList())
+    }
+
+    @Test
+    fun `get driver named Versttappen with dynamic`(){
+        getDriverNamedVersstappen(controller.autorouterDynamic().toList())
+    }
+
+
+    private fun getDriverNamedVersstappen(routes:List<ArHttpRoute>) {
         val res = routes.first { it.path == "/teams/{teamName}" }.handler.handle(
             mapOf("teamName" to "RedBull"),
             mapOf("driver" to "Max Verstappen", "active" to "true"),
