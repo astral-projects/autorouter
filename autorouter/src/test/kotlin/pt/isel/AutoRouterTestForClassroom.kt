@@ -8,6 +8,7 @@ import pt.isel.autorouter.ArVerb
 import pt.isel.autorouter.autorouterDynamic
 import pt.isel.autorouter.autorouterReflect
 import pt.isel.classroom.ClassroomController
+import pt.isel.classroom.Student
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
