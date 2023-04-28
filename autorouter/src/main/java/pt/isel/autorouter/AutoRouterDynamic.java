@@ -148,17 +148,24 @@ public class AutoRouterDynamic {
     private static Variable getValueAndConvertToType(MethodMaker handlerMaker, Class<?> type, Variable map, String paramName) {
         Variable stringValue = map.invoke("get", paramName);
         if (type != String.class) {
-            return convertToPrimitiveType(handlerMaker, type, stringValue);
+            return convertToWrapperType(handlerMaker, type, stringValue);
         } else {
             return stringValue.cast(String.class);
         }
     }
 
-    private static Variable convertToPrimitiveType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
+    private static Variable convertToWrapperType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
         // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
-        return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
+        if (type == int.class) return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
+        if (type == long.class) return handlerMaker.var(Long.class).invoke("parseLong", stringValue.cast(String.class));
+        if (type == float.class) return handlerMaker.var(Float.class).invoke("parseFloat", stringValue.cast(String.class));
+        if (type == double.class) return handlerMaker.var(Double.class).invoke("parseDouble", stringValue.cast(String.class));
+        if (type == boolean.class) return handlerMaker.var(Boolean.class).invoke("parseBoolean", stringValue.cast(String.class));
+        if (type == byte.class) return handlerMaker.var(Byte.class).invoke("parseByte", stringValue.cast(String.class));
+        if (type == short.class) return handlerMaker.var(Short.class).invoke("parseShort", stringValue.cast(String.class));
+        throw new RuntimeException("Unknown type: " + type);
     }
 
     private static boolean isPrimitiveOrStringType(Class<?> clazz) {
