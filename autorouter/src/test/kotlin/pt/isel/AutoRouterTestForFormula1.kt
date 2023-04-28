@@ -74,8 +74,16 @@ class AutoRouterTestForFormula1 {
     }
 
     @Test
-    fun `get active drivers of the Ferrari team`() {
-        val routes = controller.autorouterReflect().toList()
+    fun `get active drivers of the Ferrari team with reflect`(){
+        getActiveDriversFerrariTeam(controller.autorouterReflect().toList())
+    }
+
+    @Test
+    fun `get active drivers of the Ferrari team with dynamic`(){
+        getActiveDriversFerrariTeam(controller.autorouterDynamic().toList())
+    }
+
+    private fun getActiveDriversFerrariTeam(routes:List<ArHttpRoute>) {
         val res = routes.first { it.path == "/teams/{teamName}" }.handler.handle(
             mapOf("teamName" to "Ferrari"),
             mapOf("active" to "true"),
