@@ -10,7 +10,6 @@ import pt.isel.formula1.NotPrimitiveDate
 import pt.isel.formula1.RaceTrack
 import java.security.SecureRandom
 import java.time.LocalDate
-import kotlin.streams.toList
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
