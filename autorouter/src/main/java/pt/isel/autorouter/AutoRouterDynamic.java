@@ -100,8 +100,6 @@ public class AutoRouterDynamic {
             ParameterInfo paramInfo = entry.getValue();
             Class<?> type = paramInfo.type();
             Variable map = paramInfo.map();
-            System.out.println("Nome do parametro"+ paramName);
-            System.out.println("Nome do tipo " + type);
             if (isPrimitiveOrStringType(type)) {
                 // args.add(map.invoke("get", paramName).cast(type));
                 Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);

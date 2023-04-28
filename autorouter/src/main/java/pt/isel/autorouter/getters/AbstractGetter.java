@@ -54,7 +54,6 @@ public abstract class AbstractGetter implements Getter {
             Constructor<?> constructor,
             Map<String, String> argsValues
     ) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        System.out.println(argsValues);
         // Assert if the current constructor name equals the received class name.
         List<Object> args = new ArrayList<>();
         // Convert the string value of the parameters to their corresponding type

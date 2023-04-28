@@ -7,7 +7,7 @@ import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
 import java.util.*
 
-object Formula1Controller {
+class Formula1Controller {
     val repo = mutableMapOf(
         "RedBull" to listOf(
             Driver(1, "Max Verstappen", 340000.50, true, 1),
@@ -40,19 +40,15 @@ object Formula1Controller {
         return repo[teamName]
             ?.let {
                 if (active != false && driver != null) {
-                    println("heye1")
                     // retrieves a driver that is active
                     Optional.of(it.filter { dr -> dr.name.contains(driver) && dr.active == active })
                 } else if (driver != null) {
-                    println("heye2")
                     // retrieves a single driver
                     Optional.of(it.filter { dr -> dr.name == driver })
                 } else if (active != false) {
-                    println("heye3").also { println(driver).also { println(active) } }
                     // retrieves all active drivers for this team
                     Optional.of(it.filter { dr -> dr.active == active })
                 } else {
-                    println("heye4")
                     // retrieves the full team
                     Optional.of(it)
                 }
