@@ -1,7 +1,9 @@
 package pt.isel
 
-import org.junit.jupiter.api.Test
+import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.ArVerb
+import pt.isel.autorouter.annotations.ArRoute
+import pt.isel.autorouter.autorouterDynamic
 import pt.isel.autorouter.autorouterReflect
 import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException
 import pt.isel.formula1.Driver
@@ -10,6 +12,8 @@ import pt.isel.formula1.NotPrimitiveDate
 import pt.isel.formula1.RaceTrack
 import java.security.SecureRandom
 import java.time.LocalDate
+import kotlin.streams.toList
+import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -265,4 +269,27 @@ class AutoRouterTestForFormula1 {
             )
         }
     }
+
+    @Test
+    fun `remove driver with dynamic`() {
+        removeDriverWithDynamic(
+            controller.autorouterDynamic().toList()
+        )
+    }
+
+    private fun removeDriverWithDynamic(routes: List<ArHttpRoute>) {
+        val team = "Mercedes"
+        val nrDrivers = getTeamSize(controller, team)
+        val route = routes.first { it.path == "/teams/{teamName}/drivers/{driverId}" && it.method == ArVerb.DELETE }
+        val res = route.handler.handle(
+            mapOf("teamName" to team, "driverId" to "5"),
+            emptyMap(),
+            emptyMap(),
+        )
+        assertEquals(
+            nrDrivers - 1,
+            getTeamSize(controller, team)
+        )
+    }
+
 }
