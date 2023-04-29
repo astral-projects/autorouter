@@ -60,7 +60,6 @@ public abstract class AbstractGetter implements Getter {
         for (Parameter constructorParam : constructor.getParameters()) {
             // Get constructor param name: Ex: nr
             String name = constructorParam.getName();
-            System.out.println(constructorParam.getType() + " -> " + argsValues.get(name));
             Object value = convertStringToPrimitiveType(constructorParam.getType(), argsValues.get(name));
             args.add(value);
         }
