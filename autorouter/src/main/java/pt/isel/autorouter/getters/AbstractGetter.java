@@ -5,7 +5,10 @@ import kotlin.Pair;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public abstract class AbstractGetter implements Getter {
@@ -15,8 +18,11 @@ public abstract class AbstractGetter implements Getter {
         this.param = param;
     }
 
+    // maps
     private static final Map<Parameter, ParameterInfo> parametersMap = new HashMap<>();
+
     private static final Map<Parameter, Pair<Constructor<?>, ConstructorParameterInfo[]>> complexParametersMap = new HashMap<>();
+
     private static final Map<Class<?>, Function<String, Object>> wrapperConvertersMap = Map.of(
             Boolean.class, Boolean::parseBoolean,
             Byte.class, Byte::parseByte,
@@ -53,13 +59,14 @@ public abstract class AbstractGetter implements Getter {
         if (type == String.class) {
             return stringValue;
         } else {
+            // Try to convert the string to a primitive type
             Object value = convertStringToPrimitive(type, stringValue);
             if (value != null) {
                 return value;
             } else {
                 // Parameter is of a complex type
                 Pair<Constructor<?>, ConstructorParameterInfo[]> complexTypeInfo =
-                        complexParametersMap.computeIfAbsent(param, k-> loadComplexTypeInfo(type));
+                        complexParametersMap.computeIfAbsent(param, k -> loadComplexTypeInfo(type));
                 Constructor<?> ctor = complexTypeInfo.getFirst();
                 ConstructorParameterInfo[] ctorParamsInfoArray = complexTypeInfo.getSecond();
                 try {
@@ -71,6 +78,7 @@ public abstract class AbstractGetter implements Getter {
         }
     }
 
+    // loads the constructor and its parameters' info using reflection
     private Pair<Constructor<?>, ConstructorParameterInfo[]> loadComplexTypeInfo(Class<?> type) {
         Constructor<?>[] constructors = type.getDeclaredConstructors();
         if (constructors.length == 0) {

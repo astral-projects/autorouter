@@ -86,8 +86,8 @@ public class AutoRouterDynamic {
                 mapArgs.put(paramName, new DynamicParameterInfo(paramType, handlerMaker.param(1)));
             } else if (param.isAnnotationPresent(ArBody.class)) {
                 mapArgs.put(paramName, new DynamicParameterInfo(paramType, handlerMaker.param(2)));
-            }else{
-                throw new ArTypeAnnotationNotFoundException("Annotatiosn Required");
+            } else {
+                throw new ArTypeAnnotationNotFoundException("Parameter " + param.getName() + " has no Ar type annotation");
             }
 
         }

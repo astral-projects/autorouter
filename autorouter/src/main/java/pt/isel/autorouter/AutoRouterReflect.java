@@ -57,15 +57,14 @@ public class AutoRouterReflect {
             Map<String, String> bodyArgs
     ) {
         List<Object> args = new ArrayList<>();
-        Getter[] parameters = loadMethodParameters(m);
-        // For each parameter of the method
-        for (Getter getter : parameters) {
+        Getter[] getters = loadMethodParamGetters(m);
+        for (Getter getter : getters) {
             args.add(getter.getArgValue(routeArgs, queryArgs, bodyArgs));
         }
         return args;
     }
 
-    private static Getter[] loadMethodParameters(Method m) {
+    private static Getter[] loadMethodParamGetters(Method m) {
         return methodParametersMap.computeIfAbsent(m, k -> {
             List<Getter> getters = new ArrayList<>();
             for (Parameter param : m.getParameters()) {
@@ -77,7 +76,7 @@ public class AutoRouterReflect {
                     getters.add(new BodyArgsGetter(param));
                 } else {
                     try {
-                        throw new ArTypeAnnotationNotFoundException("param");
+                        throw new ArTypeAnnotationNotFoundException("Parameter " + param.getName() + " has no Ar type annotation");
                     } catch (ArTypeAnnotationNotFoundException e) {
                         throw new RuntimeException(e);
                     }
