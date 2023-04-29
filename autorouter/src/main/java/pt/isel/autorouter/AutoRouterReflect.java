@@ -27,6 +27,8 @@ public class AutoRouterReflect {
         // For each method, create an ArHttpRoute instance
         return methods.map(m -> createArHttpRoute(controller, m));
     }
+    
+    private final static Map<Method, Getter[]> methodParametersMap = new HashMap<>();
 
     private static ArHttpRoute createArHttpRoute(Object target, Method m) {
         // Get values for ArHttpRoute parameters:
@@ -36,12 +38,7 @@ public class AutoRouterReflect {
         // Implement functional interface only method
         ArHttpHandler handler = (routeArgs, queryArgs, bodyArgs) -> {
             // Create a list to store retrieved values of annotated parameter with Ar type annotation
-            List<Object> args;
-            try {
-                args = new ArrayList<>(getMethodArAnnotatedParameterValues(m, routeArgs, queryArgs, bodyArgs));
-            } catch (ArTypeAnnotationNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            List<Object> args = new ArrayList<>(getMethodParameterValues(m, routeArgs, queryArgs, bodyArgs));
             // Added retrieved value to the array to be sent to the current method
             try {
                 // Args needs to be converted to Object[]
@@ -53,46 +50,40 @@ public class AutoRouterReflect {
         return new ArHttpRoute(functionName, method, path, handler);
     }
 
-    private static List<Object> getMethodArAnnotatedParameterValues(
+    private static List<Object> getMethodParameterValues(
             Method m,
             Map<String, String> routeArgs,
             Map<String, String> queryArgs,
             Map<String, String> bodyArgs
-    ) throws ArTypeAnnotationNotFoundException {
+    ) {
         List<Object> args = new ArrayList<>();
-        // For each parameter of the method
-        for (Parameter param : m.getParameters()) {
-            args.add(getValue(param, routeArgs, queryArgs, bodyArgs));
+        Getter[] getters = loadMethodParamGetters(m);
+        for (Getter getter : getters) {
+            args.add(getter.getArgValue(routeArgs, queryArgs, bodyArgs));
         }
         return args;
     }
 
-    private static Object getValue(Parameter param, Map<String, String> routeArgs, Map<String, String> queryArgs, Map<String, String> bodyArgs) throws ArTypeAnnotationNotFoundException {
-        Getter getter;
-        if (param.isAnnotationPresent(ArRoute.class)) {
-            getter = loadRouteArgsGetters(param);
-        } else if (param.isAnnotationPresent(ArQuery.class)) {
-            getter = loadQueryArgsGetters(param);
-        } else if (param.isAnnotationPresent(ArBody.class)) {
-            getter = loadBodyArgsGetters(param);
-        } else {
-            throw new ArTypeAnnotationNotFoundException(
-                    "Ar type annotation was not found in the " + param.getName() + " parameter");
-        }
-        return getter.getArgValue(routeArgs, queryArgs, bodyArgs);
-    }
-
-    private final static Map<Parameter, Getter> gettersMap = new HashMap<>();
-
-    private static Getter loadRouteArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new RouteArgsGetter(k));
-    }
-
-    private static Getter loadQueryArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new QueryArgsGetter(k));
-    }
-
-    private static Getter loadBodyArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new BodyArgsGetter(k));
+    private static Getter[] loadMethodParamGetters(Method m) {
+        return methodParametersMap.computeIfAbsent(m, k -> {
+            List<Getter> getters = new ArrayList<>();
+            for (Parameter param : m.getParameters()) {
+                if (param.isAnnotationPresent(ArRoute.class)) {
+                    getters.add(new RouteArgsGetter(param));
+                } else if (param.isAnnotationPresent(ArQuery.class)) {
+                    getters.add(new QueryArgsGetter(param));
+                } else if (param.isAnnotationPresent(ArBody.class)) {
+                    getters.add(new BodyArgsGetter(param));
+                } else {
+                    try {
+                        throw new ArTypeAnnotationNotFoundException("Parameter " + param.getName() + " has no Ar type annotation");
+                    } catch (ArTypeAnnotationNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            // Return an array of getters, one for each method parameter
+            return getters.toArray(new Getter[0]);
+        });
     }
 }

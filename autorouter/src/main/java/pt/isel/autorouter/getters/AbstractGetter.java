@@ -1,11 +1,15 @@
 package pt.isel.autorouter.getters;
 
+import kotlin.Pair;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class AbstractGetter implements Getter {
     private final Parameter param;
@@ -14,58 +18,100 @@ public abstract class AbstractGetter implements Getter {
         this.param = param;
     }
 
-    protected Object getValueFromMap(Map<String, String> map) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        String stringValue = map.get(param.getName());
-        if (isPrimitiveOrStringType(param.getType())) {
-            return convertStringToPrimitiveType(param.getType(), stringValue);
+    // maps
+    private static final Map<Parameter, ParameterInfo> parametersMap = new HashMap<>();
+
+    private static final Map<Parameter, Pair<Constructor<?>, ConstructorParameterInfo[]>> complexParametersMap = new HashMap<>();
+
+    private static final Map<Class<?>, Function<String, Object>> wrapperConvertersMap = Map.of(
+            Boolean.class, Boolean::parseBoolean,
+            Byte.class, Byte::parseByte,
+            Short.class, Short::parseShort,
+            Integer.class, Integer::parseInt,
+            Long.class, Long::parseLong,
+            Float.class, Float::parseFloat,
+            Double.class, Double::parseDouble,
+            Character.class, s -> s.charAt(0)
+    );
+
+    private static final Map<Class<?>, Function<String, Object>> primitiveConvertersMap = Map.of(
+            boolean.class, Boolean::parseBoolean,
+            byte.class, Byte::parseByte,
+            short.class, Short::parseShort,
+            int.class, Integer::parseInt,
+            long.class, Long::parseLong,
+            float.class, Float::parseFloat,
+            double.class, Double::parseDouble,
+            char.class, s -> s.charAt(0)
+    );
+
+    protected Object getValueFromMap(Map<String, String> map) {
+        ParameterInfo paramInfo = loadParameterInfo(param);
+        String stringValue = map.get(paramInfo.paramName());
+        return convertValueToType(paramInfo.converterType(), stringValue, map);
+    }
+
+    private ParameterInfo loadParameterInfo(Parameter param) {
+        return parametersMap.computeIfAbsent(param, key -> new ParameterInfo(key.getName(), key.getType()));
+    }
+
+    private Object convertValueToType(Class<?> type, String stringValue, Map<String, String> map) {
+        if (type == String.class) {
+            return stringValue;
         } else {
-            // Get declared constructors
-            Constructor<?>[] constructors = param.getType().getDeclaredConstructors();
-            // Check if a parameter type has a constructor
-            return constructors.length == 0 ? null : createNewInstance(constructors[0], map);
+            // Try to convert the string to a primitive type
+            Object value = convertStringToPrimitive(type, stringValue);
+            if (value != null) {
+                return value;
+            } else {
+                // Parameter is of a complex type
+                Pair<Constructor<?>, ConstructorParameterInfo[]> complexTypeInfo =
+                        complexParametersMap.computeIfAbsent(param, k -> loadComplexTypeInfo(type));
+                Constructor<?> ctor = complexTypeInfo.getFirst();
+                ConstructorParameterInfo[] ctorParamsInfoArray = complexTypeInfo.getSecond();
+                try {
+                    return createComplexInstance(ctor, map, ctorParamsInfoArray);
+                } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 
-    private static boolean isPrimitiveOrStringType(Class<?> clazz) {
-        if (Boolean.class == clazz || boolean.class == clazz) return true;
-        if (Byte.class == clazz || byte.class == clazz) return true;
-        if (Short.class == clazz || short.class == clazz) return true;
-        if (Integer.class == clazz || int.class == clazz) return true;
-        if (Long.class == clazz || long.class == clazz) return true;
-        if (Float.class == clazz || float.class == clazz) return true;
-        if (Double.class == clazz || double.class == clazz) return true;
-        return String.class == clazz;
-    }
-
-    private static Object convertStringToPrimitiveType(Class<?> clazz, String value) {
-        // This code could be simplified by using reflection, but the authors didn't
-        // want to introduce more overhead by using it unnecessarily
-        if (Boolean.class == clazz || boolean.class == clazz) return Boolean.parseBoolean(value);
-        if (Byte.class == clazz || byte.class == clazz) return Byte.parseByte(value);
-        if (Short.class == clazz || short.class == clazz) return Short.parseShort(value);
-        if (Integer.class == clazz || int.class == clazz) return Integer.parseInt(value);
-        if (Long.class == clazz || long.class == clazz) return Long.parseLong(value);
-        if (Float.class == clazz || float.class == clazz) return Float.parseFloat(value);
-        if (Double.class == clazz || double.class == clazz) return Double.parseDouble(value);
-        return value;
-    }
-
-    private static Object createNewInstance(
-            Constructor<?> constructor,
-            Map<String, String> argsValues
-    ) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        // Assert if the current constructor name equals the received class name.
-        List<Object> args = new ArrayList<>();
-        // Convert the string value of the parameters to their corresponding type
-        for (Parameter constructorParam : constructor.getParameters()) {
-            // Get constructor param name: Ex: nr
-            String name = constructorParam.getName();
-            Object value = convertStringToPrimitiveType(constructorParam.getType(), argsValues.get(name));
-            args.add(value);
+    // loads the constructor and its parameters' info using reflection
+    private Pair<Constructor<?>, ConstructorParameterInfo[]> loadComplexTypeInfo(Class<?> type) {
+        Constructor<?>[] constructors = type.getDeclaredConstructors();
+        if (constructors.length == 0) {
+            throw new RuntimeException("The class " + type.getName() + " must have one constructor");
         }
-        // Change constructor accessibility to public
+        Constructor<?> constructor = constructors[0];
+        ConstructorParameterInfo[] constructorParamsInfo = new ConstructorParameterInfo[constructor.getParameterCount()];
+        int i = 0;
+        for (Parameter ctorParam : constructor.getParameters()) {
+            constructorParamsInfo[i++] = new ConstructorParameterInfo(ctorParam.getName(), ctorParam.getType());
+        }
         constructor.setAccessible(true);
-        // Return a new created instance of the received class with all parameter types correctly placed
+        return new Pair<>(constructor, constructorParamsInfo);
+    }
+
+    private Object convertStringToPrimitive(Class<?> type, String stringValue) {
+        Function<String, Object> converter = type.isPrimitive()
+                ? primitiveConvertersMap.get(type)
+                : wrapperConvertersMap.get(type);
+        return converter != null ? converter.apply(stringValue) : null;
+    }
+
+    private Object createComplexInstance(
+            Constructor<?> constructor,
+            Map<String, String> map,
+            ConstructorParameterInfo[] constructorParamsInfo
+    ) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        List<Object> args = new ArrayList<>();
+        for (ConstructorParameterInfo ctorParamInfo : constructorParamsInfo) {
+            String paramValue = map.get(ctorParamInfo.paramName());
+            Class<?> paramType = ctorParamInfo.converterType();
+            args.add(convertValueToType(paramType, paramValue, map));
+        }
         return constructor.newInstance(args.toArray());
     }
 }

@@ -4,11 +4,11 @@ import pt.isel.autorouter.ArHttpHandler;
 import pt.isel.autorouter.ArHttpRoute;
 import pt.isel.autorouter.ArVerb;
 import pt.isel.classroom.ClassroomController;
+import pt.isel.classroom.Student;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import  pt.isel.classroom.Student;
 
 import static java.lang.Integer.parseInt;
 

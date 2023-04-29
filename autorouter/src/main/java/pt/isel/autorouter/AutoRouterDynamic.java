@@ -72,7 +72,7 @@ public class AutoRouterDynamic {
                 .public_()
                 .override();
 
-        Map<String, ParameterInfo> mapArgs = new LinkedHashMap<>();
+        Map<String, DynamicParameterInfo> mapArgs = new LinkedHashMap<>();
         // For each parameter ArType annotation, save information about the parameter type and
         // the map it should be retrieved from
         for (Parameter param : method.getParameters()) {
@@ -81,23 +81,23 @@ public class AutoRouterDynamic {
             // Class<?> paramType = java.lang.String
             Class<?> paramType = param.getType();
             if (param.isAnnotationPresent(ArRoute.class)) {
-                mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(0)));
+                mapArgs.put(paramName, new DynamicParameterInfo(paramType, handlerMaker.param(0)));
             } else if (param.isAnnotationPresent(ArQuery.class)) {
-                mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(1)));
+                mapArgs.put(paramName, new DynamicParameterInfo(paramType, handlerMaker.param(1)));
             } else if (param.isAnnotationPresent(ArBody.class)) {
-                mapArgs.put(paramName, new ParameterInfo(paramType, handlerMaker.param(2)));
-            }else{
-                throw new ArTypeAnnotationNotFoundException("Annotatiosn Required");
+                mapArgs.put(paramName, new DynamicParameterInfo(paramType, handlerMaker.param(2)));
+            } else {
+                throw new ArTypeAnnotationNotFoundException("Parameter " + param.getName() + " has no Ar type annotation");
             }
 
         }
         ArrayList<Object> args = new ArrayList<>();
         // For each parameter, get its value from the corresponding map
-        for (Map.Entry<String, ParameterInfo> entry : mapArgs.entrySet()) {
+        for (Map.Entry<String, DynamicParameterInfo> entry : mapArgs.entrySet()) {
             // String paramName = "classroom"
             String paramName = entry.getKey();
             // ParameterInfo(java.lang.String, routeArgs)
-            ParameterInfo paramInfo = entry.getValue();
+            DynamicParameterInfo paramInfo = entry.getValue();
             Class<?> type = paramInfo.type();
             Variable map = paramInfo.map();
             if (isPrimitiveOrStringType(type)) {
@@ -161,7 +161,6 @@ public class AutoRouterDynamic {
     private static Variable convertToPrimitiveType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
-        // return type.invoke("parse" + capitalize(type.classType().getSimpleName()), stringValue);
         if (type == int.class || type == Integer.class) return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
         if (type == long.class || type == Long.class) return handlerMaker.var(Long.class).invoke("parseLong", stringValue.cast(String.class));
         if (type == float.class || type == Float.class) return handlerMaker.var(Float.class).invoke("parseFloat", stringValue.cast(String.class));
@@ -169,6 +168,7 @@ public class AutoRouterDynamic {
         if (type == boolean.class || type == Boolean.class) return handlerMaker.var(Boolean.class).invoke("parseBoolean", stringValue.cast(String.class));
         if (type == byte.class || type == Byte.class) return handlerMaker.var(Byte.class).invoke("parseByte", stringValue.cast(String.class));
         if (type == short.class || type == Short.class) return handlerMaker.var(Short.class).invoke("parseShort", stringValue.cast(String.class));
+        if (type == char.class || type == Character.class) return stringValue.cast(String.class).invoke("charAt", 0);
         throw new RuntimeException("Unknown type: " + type);
     }
 
@@ -180,6 +180,7 @@ public class AutoRouterDynamic {
         if (Long.class == clazz || long.class == clazz) return true;
         if (Float.class == clazz || float.class == clazz) return true;
         if (Double.class == clazz || double.class == clazz) return true;
+        if (Character.class == clazz || char.class == clazz) return true;
         return String.class == clazz;
     }
 }
