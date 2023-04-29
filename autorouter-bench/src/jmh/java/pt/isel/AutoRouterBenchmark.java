@@ -17,10 +17,8 @@ import java.util.stream.Stream;
 @State(Scope.Benchmark)
 public class AutoRouterBenchmark {
 
-    @Param({"reflect", "baseline"}) String approach;
+    @Param({"reflect", "baseline", "dynamic"}) String approach;
     @Param({"empty", "classroom"}) String domain;
-    /*@Param({"reflect", "baseline"}) String approach;
-    @Param({"empty"}) String domain;*/
 
     ArHttpRoute addStudentHandler;
     ArHttpRoute searchDynamicHandler;

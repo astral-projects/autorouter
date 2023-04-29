@@ -104,7 +104,6 @@ public abstract class AbstractGetter implements Getter {
             Class<?> paramType = ctorParamInfo.converterType();
             args.add(convertValueToType(paramType, paramValue, map));
         }
-        System.out.println("args = " + Arrays.toString(args.toArray()));
         return constructor.newInstance(args.toArray());
     }
 }
