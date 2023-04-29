@@ -85,14 +85,16 @@ public class AutoRouterReflect {
     private final static Map<Parameter, Getter> gettersMap = new HashMap<>();
 
     private static Getter loadRouteArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new RouteArgsGetter(k));
+        // Instead of calling the constructor directly, a method reference is used
+        // to skip an unnecessary function call, since both functions have the same signature
+        return gettersMap.computeIfAbsent(param, RouteArgsGetter::new);
     }
 
     private static Getter loadQueryArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new QueryArgsGetter(k));
+        return gettersMap.computeIfAbsent(param, QueryArgsGetter::new);
     }
 
     private static Getter loadBodyArgsGetters(Parameter param) {
-        return gettersMap.computeIfAbsent(param, (k) -> new BodyArgsGetter(k));
+        return gettersMap.computeIfAbsent(param, BodyArgsGetter::new);
     }
 }
