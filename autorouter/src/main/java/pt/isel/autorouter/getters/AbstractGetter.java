@@ -5,6 +5,7 @@ import kotlin.Pair;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,7 @@ public abstract class AbstractGetter implements Getter {
     // maps
     private static final Map<Parameter, ParameterInfo> parametersMap = new HashMap<>();
 
-    private static final Map<Parameter, Pair<Constructor<?>, ConstructorParameterInfo[]>> complexParametersMap = new HashMap<>();
+    private static final Map<Type, Pair<Constructor<?>, ConstructorParameterInfo[]>> complexParametersMap = new HashMap<>();
 
     private static final Map<Class<?>, Function<String, Object>> wrapperConvertersMap = Map.of(
             Boolean.class, Boolean::parseBoolean,
@@ -66,7 +67,7 @@ public abstract class AbstractGetter implements Getter {
             } else {
                 // Parameter is of a complex type
                 Pair<Constructor<?>, ConstructorParameterInfo[]> complexTypeInfo =
-                        complexParametersMap.computeIfAbsent(param, k -> loadComplexTypeInfo(type));
+                        complexParametersMap.computeIfAbsent(type, k -> loadComplexTypeInfo(type));
                 Constructor<?> ctor = complexTypeInfo.getFirst();
                 ConstructorParameterInfo[] ctorParamsInfoArray = complexTypeInfo.getSecond();
                 try {
@@ -111,6 +112,7 @@ public abstract class AbstractGetter implements Getter {
             String paramValue = map.get(ctorParamInfo.paramName());
             Class<?> paramType = ctorParamInfo.converterType();
             args.add(convertValueToType(paramType, paramValue, map));
+
         }
         return constructor.newInstance(args.toArray());
     }

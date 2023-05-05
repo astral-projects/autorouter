@@ -1,3 +1,5 @@
 package pt.isel.controllerTest
 
-class Date (date: String)
+import com.fasterxml.jackson.annotation.JsonProperty
+
+data class Date (@JsonProperty ("myDate")val myDate : String)
