@@ -1,8 +1,14 @@
 package pt.isel.controllerTest
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
-class VehicleType (type: String, brand: String, matriculation: Matriculation, velocity: Double) {
+class VehicleType (
+    @JsonProperty("type") val type: String,
+    @JsonProperty("brand") val brand: String,
+    @JsonProperty("matriculation") val matriculation: Matriculation,
+    velocity: Double
+) {
     private val MINIMUM_VELOCITY = 120.0
     init {
         require(velocity > MINIMUM_VELOCITY)
