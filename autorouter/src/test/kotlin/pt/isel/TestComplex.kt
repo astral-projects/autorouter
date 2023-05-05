@@ -1,10 +1,15 @@
 package pt.isel
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.autorouterReflect
 import pt.isel.controllerTest.ControllerTest
+import pt.isel.controllerTest.Date
+import pt.isel.controllerTest.Matriculation
+import pt.isel.controllerTest.Road
+import pt.isel.controllerTest.VehicleType
 import pt.isel.formula1.Driver
 import pt.isel.formula1.Formula1Controller
 import java.security.SecureRandom
@@ -29,21 +34,22 @@ class TestComplex {
     }
 
     private fun addRoad(routes: List<ArHttpRoute>) {
-        val vech
+        val vechile= VehicleType("car","Audi", Matriculation("AA-00-00", Date("12-05-2003"), "Portugal"), 130.0)
         val res = routes.first { it.path == "/road/{road}" }.handler.handle(
-            mapOf("road" to "A22"),
-            emptyMap("velocity" to "120.00"),
-            emptyMap("vehicle" to "",
-                    "matriculation" to,
-                "date" to " ")
+            mapOf("road" to "A22","location" to "Lisbon"),
+            mapOf("velocity" to "120.00"),
+            mapOf("type" to "${vechile.type}",
+                "brand" to "${vechile.brand}",
+                "matriculation" to "${vechile.matriculation}",
+                "plate" to "${vechile.matriculation.plate}",
+                "date" to "${vechile.matriculation.date}",
+                "country" to "${vechile.matriculation.country}",
+                "velocity" to "${vechile.velocity}"
+            )
         )
-        assertContentEquals(
-            listOf(
-                Driver(7, "Charles Leclerc", 654792.45, true, 6),
-                Driver(8, "Sebastian Vettel", 789675.45, false, null),
-                Driver(9, "Carlos Sainz", 126789.12, true, 2),
-            ),
-            res.get() as List<Driver>
+        assertEquals(
+            Road("A22","Lisbon" , vechile),
+            res.get() as Road
         )
     }
 
