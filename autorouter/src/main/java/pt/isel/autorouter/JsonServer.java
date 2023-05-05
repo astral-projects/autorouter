@@ -30,7 +30,7 @@ public class JsonServer implements AutoCloseable {
             case POST -> server.post(route.path(), handler);
             case DELETE -> server.delete(route.path(), handler);
             case PUT -> server.put(route.path(), handler);
-        };
+        }
         return this;
     }
 
