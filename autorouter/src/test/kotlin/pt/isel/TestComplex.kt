@@ -4,17 +4,18 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.autorouterReflect
+import pt.isel.controllerTest.ControllerTest
 import pt.isel.formula1.Driver
 import pt.isel.formula1.Formula1Controller
 import java.security.SecureRandom
 import kotlin.test.assertContentEquals
 
 class TestComplex {
-    /*
+
     private fun getTeamSize(controller: Formula1Controller, team: String) = controller.repo[team]?.size ?: 0
     private val randomNumber: Int
         get() = SecureRandom().nextInt(Int.MAX_VALUE)
-    private lateinit var controller:
+    private lateinit var controller:ControllerTest
 
     @BeforeEach
     fun setup() {
@@ -24,14 +25,17 @@ class TestComplex {
 
     @Test
     fun getMyComplexClasss(){
-        getComplex(controller.autorouterReflect().toList())
+        addRoad(controller.autorouterReflect().toList())
     }
 
-    private fun getComplex(routes: List<ArHttpRoute>) {
-        val res = routes.first { it.path == "" }.handler.handle(
-            mapOf("teamName" to "Ferrari"),
-            emptyMap(),
-            emptyMap()
+    private fun addRoad(routes: List<ArHttpRoute>) {
+        val vech
+        val res = routes.first { it.path == "/road/{road}" }.handler.handle(
+            mapOf("road" to "A22"),
+            emptyMap("velocity" to "120.00"),
+            emptyMap("vehicle" to "",
+                    "matriculation" to,
+                "date" to " ")
         )
         assertContentEquals(
             listOf(
@@ -43,7 +47,7 @@ class TestComplex {
         )
     }
 
-    @Test
+    /*@Test
     fun `when trying to send a non primitive type constructor parameter, declaration order should not matter`() {
         val routes = controller.autorouterReflect().toList()
         val driverId = randomNumber
