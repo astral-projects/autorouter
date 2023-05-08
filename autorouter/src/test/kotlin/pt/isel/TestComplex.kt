@@ -103,8 +103,8 @@ class TestComplex {
                 mapOf("velocity" to "120.00"),
                 mapOf("type" to "${vechile.type}",
                     "brand" to "${vechile.brand}",
-                    "matriculation123" to "${vechile.matriculation}", //This one is incorrect
-                    "plate" to "${vechile.matriculation.plate}",
+                    "matriculation " to "${vechile.matriculation}", //This one is incorrect
+                    "plate123" to "${vechile.matriculation.plate}",
                     "date" to "${vechile.matriculation.date}",
                     "myDate" to "${vechile.matriculation.date.myDate}",
                     "country" to "${vechile.matriculation.country}",
@@ -113,5 +113,4 @@ class TestComplex {
             )
         }
     }
-
 }
