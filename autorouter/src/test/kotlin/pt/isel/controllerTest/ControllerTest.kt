@@ -1,7 +1,6 @@
 package pt.isel.controllerTest
 
-import pt.isel.autorouter.ArVerb
-import pt.isel.autorouter.ArVerb.PUT
+import pt.isel.autorouter.ArVerb.*
 import pt.isel.autorouter.annotations.ArBody
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
@@ -39,6 +38,15 @@ class ControllerTest {
         @ArBody date: Date,
     ): Optional<Road> {
         return Optional.of(Road(roadName, location, vehicle))
+    }
+
+    @Synchronized
+    @AutoRouter("/road/{road}", method = DELETE )
+    fun methodWithArAnnotation(
+        @ArRoute roadName: String,
+        location: String
+    ): Optional<Road> {
+        return Optional.empty()
     }
 
 }
