@@ -117,3 +117,39 @@ java -jar autorouter-bench/build/libs/autorouter-bench-jmh.jar -i 4 -wi 4 -f 1 -
 * `-f`  1 fork
 * `-r`  2 run each iteration for 2 seconds
 * `-w`  2 run each warmup iteration for 2 seconds.
+
+### Results
+| ![Benchmark results](jmh-benchmark-results.jpg) |
+|:-----------------------------------------------:|
+|       *Autorouter JMH BenchMark Results*        |
+
+Below are the results of the benchmark for the different domains and approaches,
+regarding the performance of each method compared to the baseline approach.
+
+#### Domain Empty:
+
+|     Method     | Approach | Domain | Performance |
+|:--------------:|:--------:|:------:|:-----------:|
+|   addStudent   | reflect  | empty  |    3.07     |
+|   addStudent   | dynamic  | empty  |    1.08     |
+| removeStudent  | reflect  | empty  |    3.57     |
+| removeStudent  | dynamic  | empty  |    1.34     |
+|     search     | reflect  | empty  |    5.88     | 
+|     search     | dynamic  | empty  |    0.92     |
+
+#### Domain Classroom:
+
+|    Method     | Approach |  Domain   | Performance |
+|:-------------:|:--------:|:---------:|:-----------:|
+|  addStudent   | reflect  | classroom |    2.45     |
+|  addStudent   | dynamic  | classroom |    1.11     |
+| removeStudent | reflect  | classroom |    3.39     |
+| removeStudent | dynamic  | classroom |    1.07     |
+|    search     | reflect  | classroom |    5.73     |
+|    search     | dynamic  | classroom |    0.99     |
+
+The **performance** is calculated as the ratio between the number of operations in ms of the baseline approach and the number of operations in ms of the current approach,
+and represents the performance loss or gain of the current approach compared to the baseline approach of the current domain.
+
+The results show
+the **dynamic code** generation approach is **much faster** than the reflection approach in all methods of a given domain.

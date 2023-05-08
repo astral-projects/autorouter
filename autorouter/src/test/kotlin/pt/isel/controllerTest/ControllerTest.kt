@@ -7,6 +7,10 @@ import pt.isel.autorouter.annotations.ArRoute
 import pt.isel.autorouter.annotations.AutoRouter
 import java.util.*
 
+/**
+ * This controller was created to test situations that could not be tested in the
+ * other controllers, since they were using both reflection and dynamic implmentations.
+ */
 class ControllerTest {
     val repo = mutableMapOf(
         "car" to listOf(
@@ -42,7 +46,7 @@ class ControllerTest {
 
     @Synchronized
     @AutoRouter("/road/{road}", method = DELETE )
-    fun methodWithArAnnotation(
+    fun methodWithoutArAnnotation(
         @ArRoute roadName: String,
         location: String
     ): Optional<Road> {

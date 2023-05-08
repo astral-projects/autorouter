@@ -3,7 +3,6 @@ package pt.isel
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import pt.isel.autorouter.ArHttpRoute
 import pt.isel.autorouter.autorouterReflect
 import pt.isel.controllerTest.*
 import kotlin.test.assertFailsWith
@@ -17,18 +16,9 @@ class TestComplex {
         controller = ControllerTest()
     }
 
-    /*
-    * Test that verifies the following conditions:
-    * when trying to send a non-primitive type constructor parameter, declaration order should not matter
-    * try to add a driver to a team but request body values do not correspond to expected method parameter names
-    * try to add a driver but one of the body values is not a primitive type */
-
     @Test
-    fun getMyComplexClasss() {
-        addRoad(controller.autorouterReflect().toList())
-    }
-
-    private fun addRoad(routes: List<ArHttpRoute>) {
+    fun `Add a road but send several complex types in the same map`() {
+        val routes = controller.autorouterReflect().toList()
         val vechile = VehicleType("car", "Audi", Matriculation("AA-00-00", Date("12-05-2003"), "Portugal"), 130.0)
         val res = routes.first { it.path == "/road/{road}/loc/{location}" }.handler.handle(
             mapOf("roadName" to "A22", "location" to "Lisbon"),
@@ -51,11 +41,8 @@ class TestComplex {
     }
 
     @Test
-    fun testTofail2() {
-        `try to add but two consturcotr parameter with the same name `(controller.autorouterReflect().toList())
-    }
-
-    private fun `try to add but two consturcotr parameter with the same name `(routes: List<ArHttpRoute>) {
+    fun `try to add a road but send two constructor parameters with the same name`() {
+        val routes = controller.autorouterReflect().toList()
         val vechile = VehicleType("car", "Audi", Matriculation("AA-00-00", Date("12-05-2003"), "Portugal"), 130.0)
         assertFailsWith<RuntimeException> {
             val res = routes.first { it.path == "/road/{road}/loc/{location}" }.handler.handle(
@@ -67,7 +54,7 @@ class TestComplex {
                     "matriculation" to "${vechile.matriculation}",
                     "plate" to "${vechile.matriculation.plate}",
                     "date" to "${vechile.matriculation.date}",
-                    "date" to "${vechile.matriculation.date.myDate}",//Parameters with the same name should
+                    "date" to "${vechile.matriculation.date.myDate}", // Parameters with the same name should throw error
                     "country" to "${vechile.matriculation.country}",
                     "velocity" to "${vechile.velocity}"
                 )
@@ -75,13 +62,9 @@ class TestComplex {
         }
     }
 
-
     @Test
-    fun testTofail() {
-        `try to add but send values with incorrect name parameter`(controller.autorouterReflect().toList())
-    }
-
-    private fun `try to add but send values with incorrect name parameter`(routes: List<ArHttpRoute>) {
+    fun `try to add but send values with incorrect name parameter`() {
+        val routes = controller.autorouterReflect().toList()
         val vechile = VehicleType("car", "Audi", Matriculation("AA-00-00", Date("12-05-2003"), "Portugal"), 130.0)
         assertFailsWith<RuntimeException> {
             val res = routes.first { it.path == "/road/{road}/loc/{location}" }.handler.handle(
@@ -90,8 +73,8 @@ class TestComplex {
                 mapOf(
                     "type" to "${vechile.type}",
                     "brand" to "${vechile.brand}",
-                    "matriculation " to "${vechile.matriculation}", //This one is incorrect
-                    "plate123" to "${vechile.matriculation.plate}",
+                    "matriculation " to "${vechile.matriculation}",
+                    "1231312314141511515" to "${vechile.matriculation.plate}", // This one is incorrect
                     "date" to "${vechile.matriculation.date}",
                     "myDate" to "${vechile.matriculation.date.myDate}",
                     "country" to "${vechile.matriculation.country}",
@@ -102,7 +85,7 @@ class TestComplex {
     }
 
     @Test
-    fun `Should throw exception when a method parameter does not have an @ArType annotation`() {
+    fun `use a method that has a parameter with without a @ArType annotation`() {
         val routes = controller.autorouterReflect().toList()
         val handler = routes.first { it.path == "/road/{road}" }.handler
         assertFailsWith<RuntimeException> {
