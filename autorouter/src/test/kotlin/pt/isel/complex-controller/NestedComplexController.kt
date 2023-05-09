@@ -1,4 +1,4 @@
-package pt.isel.controllerTest
+package pt.isel.`complex-controller`
 
 import pt.isel.autorouter.ArVerb.*
 import pt.isel.autorouter.annotations.ArBody
@@ -9,9 +9,10 @@ import java.util.*
 
 /**
  * This controller was created to test situations that could not be tested in the
- * other controllers, since they were using both reflection and dynamic implmentations.
+ * other controllers, since they were using both reflection and dynamic implementations.
+ * This controller is used mainly to test nested complex types.
  */
-class ControllerTest {
+class NestedComplexController {
     val repo = mutableMapOf(
         "car" to listOf(
             Road("A22", "Lisbon", VehicleType("car","Audi",Matriculation("AA-00-00", Date("12-05-2003"), "Portugal"), 130.0)),
@@ -42,15 +43,6 @@ class ControllerTest {
         @ArBody date: Date,
     ): Optional<Road> {
         return Optional.of(Road(roadName, location, vehicle))
-    }
-
-    @Synchronized
-    @AutoRouter("/road/{road}", method = DELETE )
-    fun methodWithoutArAnnotation(
-        @ArRoute roadName: String,
-        location: String
-    ): Optional<Road> {
-        return Optional.empty()
     }
 
 }

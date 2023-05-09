@@ -1,4 +1,4 @@
-package pt.isel.controllerTest
+package pt.isel.`complex-controller`
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

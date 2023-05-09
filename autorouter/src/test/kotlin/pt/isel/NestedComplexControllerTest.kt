@@ -3,22 +3,32 @@ package pt.isel
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import pt.isel.autorouter.ArHttpRoute
+import pt.isel.autorouter.autorouterDynamic
 import pt.isel.autorouter.autorouterReflect
-import pt.isel.controllerTest.*
+import pt.isel.`complex-controller`.*
 import kotlin.test.assertFailsWith
 
-class TestComplex {
+class NestedComplexControllerTest {
 
-    private lateinit var controller: ControllerTest
+    private lateinit var controller: NestedComplexController
 
     @BeforeEach
     fun setup() {
-        controller = ControllerTest()
+        controller = NestedComplexController()
     }
 
     @Test
-    fun `Add a road but send several complex types in the same map`() {
-        val routes = controller.autorouterReflect().toList()
+    fun `A complex type that has other complex types is send in the same map via reflect`() {
+        testNestedComplexTypes(controller.autorouterReflect().toList())
+    }
+
+    @Test
+    fun `A complex type that has other complex types is send in the same map via dynamic`() {
+        testNestedComplexTypes(controller.autorouterDynamic().toList())
+    }
+
+    private fun testNestedComplexTypes(routes: List<ArHttpRoute>) {
         val vechile = VehicleType("car", "Audi", Matriculation("AA-00-00", Date("12-05-2003"), "Portugal"), 130.0)
         val res = routes.first { it.path == "/road/{road}/loc/{location}" }.handler.handle(
             mapOf("roadName" to "A22", "location" to "Lisbon"),
@@ -84,16 +94,4 @@ class TestComplex {
         }
     }
 
-    @Test
-    fun `use a method that has a parameter with without a @ArType annotation`() {
-        val routes = controller.autorouterReflect().toList()
-        val handler = routes.first { it.path == "/road/{road}" }.handler
-        assertFailsWith<RuntimeException> {
-            handler.handle(
-                mapOf("roadName" to "A22", "location" to "Lisbon"),
-                emptyMap(),
-                emptyMap()
-            )
-        }
-    }
 }

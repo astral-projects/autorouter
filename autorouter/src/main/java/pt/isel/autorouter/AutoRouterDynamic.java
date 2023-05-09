@@ -1,5 +1,6 @@
 package pt.isel.autorouter;
 
+import kotlin.Pair;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
 import org.cojen.maker.MethodMaker;
@@ -10,12 +11,19 @@ import pt.isel.autorouter.annotations.ArRoute;
 import pt.isel.autorouter.annotations.AutoRouter;
 import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Stream;
 
 public class AutoRouterDynamic {
 
+    /**
+     * Creates a stream of ArHttpRoute instances for the given controller.
+     * @param controller - the controller that will be used to create the ArHttpRoute instances.
+     */
     public static Stream<ArHttpRoute> autorouterDynamic(Object controller) {
         // Filter methods that have autoroute annotation and have an <Optional> return type
         Stream<Method> methods = Arrays
@@ -96,29 +104,38 @@ public class AutoRouterDynamic {
         for (Map.Entry<String, DynamicParameterInfo> entry : mapArgs.entrySet()) {
             // String paramName = "classroom"
             String paramName = entry.getKey();
-            // ParameterInfo(java.lang.String, routeArgs)
+            // DynamicParameterInfo(java.lang.String, routeArgs)
             DynamicParameterInfo paramInfo = entry.getValue();
             Class<?> type = paramInfo.type();
             Variable map = paramInfo.map();
-            if (isPrimitiveOrStringType(type)) {
-                // args.add(map.invoke("get", paramName).cast(type));
-                Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
-                args.add(simpleTypeInstance);
-            } else {
-                // int nr = Integer.valueOf(bodyArgs.get("nr"))
-                // String name = bodyArgs.get("name")
-                // int group = Integer.valueOf(bodyArgs.get("group"))
-                // int semester = Integer.valueOf(bodyArgs.get("semester"))
-                // new Student(nr, name, group, semester)
-                Variable complexTypeInstance = buildNewComplexInstance(handlerMaker, type, map);
-                args.add(complexTypeInstance);
-            }
+            args.add(getValueAndConvertToType(handlerMaker, paramName, type, map));
         }
         // router.search(classroom)
         var result = handlerMaker.field(routerMaker.name()).invoke(method.getName(), args.toArray());
         // return Optional.of(result) (inside the handler)
         handlerMaker.return_(result.cast(Optional.class));
         return clazzMaker;
+    }
+
+    /**
+     * Converts to a simple or complex type, depending on the type of the parameter being processed.
+     * @param handlerMaker - the MethodMaker instance that represents the handle method being implemented.
+     * @param paramName - the name of the parameter being processed.
+     * @param type - the type of the parameter being processed.
+     * @param map - the map from which the parameter value will be retrieved.
+     * @return the Variable instance that represents the new instance of the complex type to be generated.
+     */
+    private static Variable getValueAndConvertToType(MethodMaker handlerMaker, String paramName, Class<?> type, Variable map) {
+        if (type == String.class || primitiveWrapperConverter.containsKey(type)) {
+            return getStringOrPrimitive(handlerMaker, paramName, type, map);
+        } else {
+            // int nr = Integer.valueOf(bodyArgs.get("nr"))
+            // String name = bodyArgs.get("name")
+            // int group = Integer.valueOf(bodyArgs.get("group"))
+            // int semester = Integer.valueOf(bodyArgs.get("semester"))
+            // new Student(nr, name, group, semester)
+            return buildNewComplexInstance(handlerMaker, type, map);
+        }
     }
 
     /**
@@ -135,21 +152,21 @@ public class AutoRouterDynamic {
     ) {
         Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
         ArrayList<Object> args = new ArrayList<>();
-
+        // For each constructor parameter:
         for (Parameter constructorParam : constructor.getParameters()) {
             // Get a constructor param name: Ex: nr
             String paramName = constructorParam.getName();
-            // Get a constructor param type
-            // : Ex: int
+            // Get a constructor param type: Ex: int
             Class<?> type = constructorParam.getType();
-            Variable simpleTypeInstance = getValueAndConvertToType(handlerMaker, type, map, paramName);
-            args.add(simpleTypeInstance);
+            // At this point, this instance could be of complex or simple type
+            Variable typeInstance = getValueAndConvertToType(handlerMaker, paramName, type, map);
+            args.add(typeInstance);
        }
         // return new Student(nr, name, group, semester);
         return handlerMaker.new_(clazz, args.toArray());
     }
 
-    private static Variable getValueAndConvertToType(MethodMaker handlerMaker, Class<?> type, Variable map, String paramName) {
+    private static Variable getStringOrPrimitive(MethodMaker handlerMaker, String paramName, Class<?> type, Variable map) {
         Variable stringValue = map.invoke("get", paramName);
         if (type != String.class) {
             return convertToPrimitiveType(handlerMaker, type, stringValue);
@@ -161,27 +178,32 @@ public class AutoRouterDynamic {
     private static Variable convertToPrimitiveType(MethodMaker handlerMaker, Class<?> type, Variable stringValue) {
         // String stringValue = bodyArgs.get("nr")
         // return Integer.parseInt(value)
-        if (type == int.class || type == Integer.class) return handlerMaker.var(Integer.class).invoke("parseInt", stringValue.cast(String.class));
-        if (type == long.class || type == Long.class) return handlerMaker.var(Long.class).invoke("parseLong", stringValue.cast(String.class));
-        if (type == float.class || type == Float.class) return handlerMaker.var(Float.class).invoke("parseFloat", stringValue.cast(String.class));
-        if (type == double.class || type == Double.class) return handlerMaker.var(Double.class).invoke("parseDouble", stringValue.cast(String.class));
-        if (type == boolean.class || type == Boolean.class) return handlerMaker.var(Boolean.class).invoke("parseBoolean", stringValue.cast(String.class));
-        if (type == byte.class || type == Byte.class) return handlerMaker.var(Byte.class).invoke("parseByte", stringValue.cast(String.class));
-        if (type == short.class || type == Short.class) return handlerMaker.var(Short.class).invoke("parseShort", stringValue.cast(String.class));
-        if (type == char.class || type == Character.class) return stringValue.cast(String.class).invoke("charAt", 0);
-        throw new RuntimeException("Unknown type: " + type);
+        Pair<Class<?>, String> converter = primitiveWrapperConverter.get(type);
+        if (converter == null) {
+            throw new RuntimeException("Type does not have a wrapper: " + type);
+        }
+        Class<?> wrapperClass = converter.getFirst();
+        String methodName = converter.getSecond();
+        return handlerMaker.var(wrapperClass).invoke(methodName, stringValue.cast(String.class));
     }
 
-    private static boolean isPrimitiveOrStringType(Class<?> clazz) {
-        if (Boolean.class == clazz || boolean.class == clazz) return true;
-        if (Byte.class == clazz || byte.class == clazz) return true;
-        if (Short.class == clazz || short.class == clazz) return true;
-        if (Integer.class == clazz || int.class == clazz) return true;
-        if (Long.class == clazz || long.class == clazz) return true;
-        if (Float.class == clazz || float.class == clazz) return true;
-        if (Double.class == clazz || double.class == clazz) return true;
-        if (Character.class == clazz || char.class == clazz) return true;
-        return String.class == clazz;
-    }
+    private static final Map<Class<?>, Pair<Class<?>, String>> primitiveWrapperConverter = new HashMap<>() {{
+        put(int.class, new Pair<>(Integer.class, "parseInt"));
+        put(Integer.class, new Pair<>(Integer.class, "parseInt"));
+        put(long.class, new Pair<>(Integer.class, "parseLong"));
+        put(Long.class, new Pair<>(Integer.class, "parseLong"));
+        put(char.class, new Pair<>(Character.class, "charAt"));
+        put(Character.class, new Pair<>(Character.class, "charAt"));
+        put(float.class, new Pair<>(Float.class, "parseFloat"));
+        put(Float.class, new Pair<>(Float.class, "parseFloat"));
+        put(double.class, new Pair<>(Double.class, "parseDouble"));
+        put(Double.class, new Pair<>(Double.class, "parseDouble"));
+        put(boolean.class, new Pair<>(Boolean.class, "parseBoolean"));
+        put(Boolean.class, new Pair<>(Boolean.class, "parseBoolean"));
+        put(byte.class, new Pair<>(Byte.class, "parseByte"));
+        put(Byte.class, new Pair<>(Byte.class, "parseByte"));
+        put(short.class, new Pair<>(Short.class, "parseShort"));
+        put(Short.class, new Pair<>(Short.class, "parseShort"));
+    }};
 }
 
