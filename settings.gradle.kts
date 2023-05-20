@@ -8,3 +8,4 @@ rootProject.name = "autorouter"
 include("app")
 include("autorouter")
 include("autorouter-bench")
+include("watch-new-files-content")
