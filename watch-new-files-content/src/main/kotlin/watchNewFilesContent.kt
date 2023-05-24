@@ -1,6 +1,7 @@
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.WatchKey
 
@@ -21,6 +22,7 @@ fun Path.watchNewFilesContent(): Sequence<Sequence<String>> = sequence {
                 // Get the type of the event
                 val event = watchEvent.kind()
                 val filename = watchEvent.context() as Path
+                println("Event => $event, Path => $filename")
                 // Get the child name
                 val childName: Path = fileName.resolve(filename)
                 when (event) {
