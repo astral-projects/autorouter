@@ -19,6 +19,8 @@ class WatchNewFilesContentTest {
     private val defaultText = "testString"
     private val fileAName = "A.txt"
     private val fileBName = "B.txt"
+    private val defaultTextA = "testStringAI"
+    private val defaultTextB = "testStringAIAIAIAIAIAI"
 
     private lateinit var dir: Path
     private lateinit var fileA: Path
