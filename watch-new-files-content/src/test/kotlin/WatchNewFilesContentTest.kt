@@ -13,6 +13,7 @@ class WatchNewFilesContentTest {
 
     private val defaultTextA = "testStringA"
     private val defaultTextB = "testStringB"
+    private val defaultTextC = "testStringC"
 
     private lateinit var dir: Path
     private lateinit var fileA: Path
@@ -129,5 +130,31 @@ class WatchNewFilesContentTest {
         assertTrue { iterB.hasNext() }
         assertEquals(defaultTextB, iterB.next())
         assertFalse { iterB.hasNext() }
+    }
+
+    @Test
+    fun `Watch a directory lazily concurrently with one file modified , writting before the sequence is executted and writting after the execute `() {
+        val sequence= dir.watchNewFilesContent()
+        fileA.writeText(defaultTextA)
+        val latch = CountDownLatch(1)
+        lateinit var lines: Sequence<String>
+        val threadWatchFile = thread {
+            // signal that threadWatchFile is ready to watch
+            latch.countDown()
+            // start watching and blocking until new file created or modified
+            lines = sequence.iterator().next()
+        }
+        // wait for threadWatchFile start watching
+        latch.await()
+        // ensure that threadWatchFile is watching before write to file
+        Thread.sleep(2000)
+        // write to file
+        fileA.writeText(defaultTextC)
+        threadWatchFile.join()
+        // A-Assertions
+        val iter = lines.iterator()
+        assertTrue { iter.hasNext() }
+        assertEquals(defaultTextC, iter.next())
+        assertFalse { iter.hasNext() }
     }
 }
