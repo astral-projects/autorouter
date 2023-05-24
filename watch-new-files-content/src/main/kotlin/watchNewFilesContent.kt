@@ -1,7 +1,6 @@
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.WatchKey
 
@@ -18,6 +17,7 @@ fun Path.watchNewFilesContent(): Sequence<Sequence<String>> = sequence {
             // One key for each directory
             val key: WatchKey = service.take()
             // Dequeueing events
+            println("Polling events...")
             for (watchEvent in key.pollEvents()) {
                 // Get the type of the event
                 val event = watchEvent.kind()

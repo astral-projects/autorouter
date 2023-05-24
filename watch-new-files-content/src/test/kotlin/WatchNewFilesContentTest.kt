@@ -1,4 +1,5 @@
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -11,9 +12,34 @@ import kotlin.concurrent.thread
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class WatchNewFilesContentTest {
 
+    private val defaultText = "testString"
+    private val fileAName = "A.txt"
+    private val fileBName = "B.txt"
+
+    private lateinit var dir: Path
+    private lateinit var fileA: Path
+    private lateinit var fileB: Path
+
+    @BeforeEach
+    fun setup() {
+        val directoryName = "watchable-dir"
+        dir = Files.createDirectory(Paths.get("src/test/kotlin/$directoryName"))
+        fileA = Files.createFile(dir.resolve(fileAName))
+        fileB = Files.createFile(dir.resolve(fileBName))
+    }
+
+    @AfterEach
+    fun dispose() {
+        Files.deleteIfExists(fileA)
+        Files.deleteIfExists(fileB)
+        Files.deleteIfExists(dir)
+    }
+
+    // try-out-tests
     @Test
     fun `Watch a directory lazily`() {
         val dir = Paths.get("src/test/kotlin/watchable-dir")
@@ -37,49 +63,28 @@ class WatchNewFilesContentTest {
         }
     }
 
+    // concurrent-tests
     @Test
-    fun `Concurrent Test`() {
-        val dir = Paths.get("src/test/kotlin/watchable-dir")
-
-
-
-
-
-        val list = mutableListOf<String>()
-        val watcherThread = thread {
-            for (fileContent in dir.watchNewFilesContent()) {
-                for (line in fileContent) {
-                    list.add(line)
-                }
-            }
-        }
-        Thread.sleep(100)
-
-        val fileName = "ola.txt"
-        val fileText = "Então ze sigura te "
-        File(fileName).writeText(fileText)
-
-        // Give the watcher a chance to detect the change
-        Thread.sleep(100)
-        File("src/test/kotlin/watchable-dir/ola.txt").forEachLine { realLine ->
-            list.forEach { line ->
-                println("$line = $realLine")
-                assertEquals(realLine, line)
-            }
-        }
-        println("UI")
-        watcherThread.interrupt()
-    }
-
-
-    @Test
-    fun `step-by-step `(){
-        val dir = Paths.get("src/test/kotlin/watchable-dir")
-        val fileName = File(dir.toFile(),"ola.txt")
-        val fileName2 = File(dir.toFile(),"ola2.txt")
+    fun `step-by-step`() {
         val sequence= dir.watchNewFilesContent()
-        val sq: Sequence<String> =sequence.iterator().next()
-        Paths.get("src/test/kotlin/watchable-dir/ola.txt").writeText("ola")
-        println(sq.first())
+        val latch = CountDownLatch(1)
+        lateinit var lines: Sequence<String>
+        val threadWatchFile = thread {
+            // signal that threadWatchFile is ready to watch
+            latch.countDown()
+            // start watching and blocking until new file created or modified
+            lines = sequence.iterator().next()
+        }
+        // wait for threadWatchFile start watching
+        latch.await()
+        Thread.sleep(2000) // ensure threadWatchFile is watching
+        // write to file
+        fileA.writeText(defaultText)
+        // wait for new file has been watched by threadWatchFile
+        println("Waiting for threadWatchFile to finish")
+        threadWatchFile.join()
+        val iter = lines.iterator()
+        assertTrue { iter.hasNext() }
+        assertEquals(defaultText, iter.next())
     }
 }
