@@ -21,6 +21,7 @@ fun Path.watchNewFilesContent(): Sequence<Sequence<String>> = sequence {
                 // Get the type of the event
                 val event = watchEvent.kind()
                 val filename = watchEvent.context() as Path
+                println("$event -> $filename")
                 // Get the child name
                 val childName: Path = fileName.resolve(filename)
                 when (event) {

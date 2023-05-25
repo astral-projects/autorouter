@@ -23,6 +23,11 @@ public class JsonServer implements AutoCloseable {
     /**
      * Parses body request as Json and return Json back.
      */
+    // Object need to bring info that handler returns a Sequence<Sequence<String>>
+    // Do an if to check if it is a sequence of sequence of string and if it is need to be registed in different way
+    // How? See in moodle
+    // if it not do the normal thing
+    // Resume: Add more info from ArHttpRoute then came from annotations
     public final JsonServer addRoute(ArHttpRoute route) {
         Handler handler = httpHandlerForRoute(route);
         switch (route.method()) {
