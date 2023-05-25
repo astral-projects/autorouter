@@ -17,6 +17,7 @@ fun Path.watchNewFilesContent(): Sequence<Sequence<String>> = sequence {
             // One key for each directory
             val key: WatchKey = service.take()
             // Dequeueing events
+            println("Polling events...")
             for (watchEvent in key.pollEvents()) {
                 // Get the type of the event
                 val event = watchEvent.kind()

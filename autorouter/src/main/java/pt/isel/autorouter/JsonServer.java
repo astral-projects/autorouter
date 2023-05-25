@@ -29,6 +29,9 @@ public class JsonServer implements AutoCloseable {
     // if it not do the normal thing
     // Resume: Add more info from ArHttpRoute then came from annotations
     public final JsonServer addRoute(ArHttpRoute route) {
+        // TODO("ArHttpRoute change annotations
+        // TODO(allow this implementation and other that enables the annotations
+        // RECORD DIZ se a o record traz um optional de sequencias de sequencias)
         Handler handler = httpHandlerForRoute(route);
         switch (route.method()) {
             case GET -> server.get(route.path(), handler);
