@@ -148,6 +148,7 @@ class WatchNewFilesContentTest {
         latch.await()
         // ensure that threadWatchFile is watching before write to file
         Thread.sleep(2000)
+        fileA.writeText(defaultTextB)
         // write to file
         fileA.writeText(defaultTextC)
         threadWatchFile.join()
@@ -156,5 +157,9 @@ class WatchNewFilesContentTest {
         assertTrue { iter.hasNext() }
         assertEquals(defaultTextC, iter.next())
         assertFalse { iter.hasNext() }
+        fileA.writeText(defaultTextB)
+        //assertEquals(defaultTextB, iter.next())
+        //assertFalse(iter.hasNext())
+
     }
 }
