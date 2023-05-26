@@ -7,6 +7,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
+import kotlin.io.path.appendText
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -155,16 +156,13 @@ class WatchNewFilesContentTest {
         Thread.sleep(2000)
         fileA.writeText(defaultTextB)
         // write to file
-        fileA.writeText(defaultTextC)
+        fileA.appendText(defaultTextC)
         threadWatchFile.join()
         // A-Assertions
         val iter = lines.iterator()
         assertTrue { iter.hasNext() }
         assertEquals(defaultTextC, iter.next())
         assertFalse { iter.hasNext() }
-        fileA.writeText(defaultTextB)
-        //assertEquals(defaultTextB, iter.next())
-        //assertFalse(iter.hasNext())
 
-    }
+        }
 }

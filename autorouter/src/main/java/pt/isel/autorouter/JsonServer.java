@@ -6,8 +6,10 @@ import io.javalin.http.Handler;
 import io.javalin.http.NotFoundResponse;
 import org.jetbrains.annotations.NotNull;
 
+import kotlin.sequences.Sequence;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
@@ -32,16 +34,21 @@ public class JsonServer implements AutoCloseable {
             javalin.start(3000);
             System.out.println(route.path());
             javalin.get(route.path(), ctx -> {
+                ctx.contentType("text/html");
                 PrintWriter writer = ctx.res().getWriter();
                 try {
+
                     while (true) {
-                        var res = route.handler().handle(emptyMap(), emptyMap(), emptyMap());
-                        if (res.isPresent()) {
-                            writer.println(res.get());
+                        System.out.println(i);
+                        Object res = route.handler().handle(emptyMap(), emptyMap(), emptyMap());
+                        Optional<Sequence<Sequence<String>>> resOptional = (Optional<Sequence<Sequence<String>>>) res;
+                        var iter = resOptional.get().iterator().next().iterator();
+                        while (iter.hasNext()) {
+                            writer.println(iter.next());
                         }
+                        writer.flush();
                     }
                 } finally {
-                    writer.flush();
                     writer.close();
                 }
             });

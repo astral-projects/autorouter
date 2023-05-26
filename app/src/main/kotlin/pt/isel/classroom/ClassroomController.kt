@@ -96,11 +96,7 @@ class ClassroomController {
     @AutoRouter("/watch", method = GET)
     @ArSequence
     fun watch(): Optional<Sequence<Sequence<String>>> {
-        val dir: Path = Files.createDirectory(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir"))
-        val file1: Path = Files.createFile(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir/file1.txt"))
-        val file2: Path = Files.createFile(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir/file2.txt"))
-        val file3: Path = Files.createFile(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir/file3.txt"))
-        print("Created files: $file1, $file2, $file3")
+        val dir: Path = Paths.get("app/src/main/kotlin/pt/isel/dir")
         return Optional.of(dir.watchNewFilesContent())
     }
 }
