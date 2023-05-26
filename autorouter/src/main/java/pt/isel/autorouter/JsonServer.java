@@ -37,16 +37,18 @@ public class JsonServer implements AutoCloseable {
                 ctx.contentType("text/html");
                 PrintWriter writer = ctx.res().getWriter();
                 try {
-
                     while (true) {
-                        System.out.println(i);
                         Object res = route.handler().handle(emptyMap(), emptyMap(), emptyMap());
                         Optional<Sequence<Sequence<String>>> resOptional = (Optional<Sequence<Sequence<String>>>) res;
-                        var iter = resOptional.get().iterator().next().iterator();
-                        while (iter.hasNext()) {
-                            writer.println(iter.next());
+                        var outeriter = resOptional.get().iterator();
+                        while (outeriter.hasNext()) {
+                            var iter =outeriter.next().iterator();
+                            while (iter.hasNext()) {
+                                writer.println(iter.next());
+                            }
+                            writer.println("<hr>");
+                            writer.flush();
                         }
-                        writer.flush();
                     }
                 } finally {
                     writer.close();

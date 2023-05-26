@@ -1,0 +1,17 @@
+ System.out.println(i);
+                        Object res = route.handler().handle(emptyMap(), emptyMap(), emptyMap());
+                        Optional<Sequence<Sequence<String>>> resOptional = (Optional<Sequence<Sequence<String>>>) res;
+                        System.out.println("before sequece");
+                        var outerIter = resOptional.get().iterator();
+                        System.out.println("before inner while");
+                        while(true) {
+                            var iter= outerIter.next().iterator();
+                            while (iter.hasNext()) {
+                                writer.println(iter.next());
+                            }
+                            ctx.html("<p style='color: yellow;'>Texto em parágrafo amarelo</p>");
+                            writer.flush();
+                            i++;
+                           
+                        }
+                    }
