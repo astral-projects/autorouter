@@ -1,9 +1,6 @@
 package pt.isel.autorouter;
 
-import pt.isel.autorouter.annotations.ArBody;
-import pt.isel.autorouter.annotations.ArQuery;
-import pt.isel.autorouter.annotations.ArRoute;
-import pt.isel.autorouter.annotations.AutoRouter;
+import pt.isel.autorouter.annotations.*;
 import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException;
 import pt.isel.autorouter.getters.BodyArgsGetter;
 import pt.isel.autorouter.getters.Getter;
@@ -35,6 +32,7 @@ public class AutoRouterReflect {
         String functionName = m.getName();
         ArVerb method = m.getAnnotation(AutoRouter.class).method();
         String path = m.getAnnotation(AutoRouter.class).value();
+        boolean isSequence = m.getAnnotation(ArSequence.class) != null;
         // Implement functional interface only method
         ArHttpHandler handler = (routeArgs, queryArgs, bodyArgs) -> {
             // Create a list to store retrieved values of annotated parameter with Ar type annotation
@@ -47,7 +45,7 @@ public class AutoRouterReflect {
                 throw new RuntimeException(e);
             }
         };
-        return new ArHttpRoute(functionName, method, path, handler);
+        return new ArHttpRoute(functionName, method, path, handler, isSequence);
     }
 
     private static List<Object> getMethodParameterValues(

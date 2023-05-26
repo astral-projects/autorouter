@@ -6,6 +6,18 @@ public record ArHttpRoute(
         String funName,
         ArVerb method,
         String path,
-        ArHttpHandler handler
+        ArHttpHandler handler,
+        Boolean isSequence
 ) {
 }
+
+// Object need to bring info that handler returns a Sequence<Sequence<String>>
+// Do an if to check if it is a sequence of sequence of string and if it is need to be registed in different way
+// How? See in moodle
+// if it not do the normal thing
+// Resume: Add more info from ArHttpRoute then came from annotations
+
+// TODO("ArHttpRoute change annotations
+// TODO(allow this implementation and other that enables the annotations
+// RECORD DIZ se a o record traz um optional de sequencias de sequencias)
+

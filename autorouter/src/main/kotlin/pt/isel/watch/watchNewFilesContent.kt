@@ -1,3 +1,5 @@
+package pt.isel.watch
+
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,8 +29,7 @@ fun Path.watchNewFilesContent(): Sequence<Sequence<String>> = sequence {
                 val childName: Path = fileName.resolve(filename)
                 when (event) {
                     OVERFLOW -> continue
-                    ENTRY_CREATE -> yield(emptySequence())
-                    ENTRY_MODIFY -> {
+                    ENTRY_CREATE, ENTRY_MODIFY -> {
                         try {
                             if (Files.probeContentType(childName.fileName) == "text/plain") {
                                 yield(sequence {

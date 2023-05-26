@@ -5,10 +5,7 @@ import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
 import org.cojen.maker.MethodMaker;
 import org.cojen.maker.Variable;
-import pt.isel.autorouter.annotations.ArBody;
-import pt.isel.autorouter.annotations.ArQuery;
-import pt.isel.autorouter.annotations.ArRoute;
-import pt.isel.autorouter.annotations.AutoRouter;
+import pt.isel.autorouter.annotations.*;
 import pt.isel.autorouter.exceptions.ArTypeAnnotationNotFoundException;
 
 import java.lang.reflect.Constructor;
@@ -36,10 +33,11 @@ public class AutoRouterDynamic {
                 String functionName = m.getName();
                 ArVerb method = m.getAnnotation(AutoRouter.class).method();
                 String path = m.getAnnotation(AutoRouter.class).value();
+                boolean isSequence = m.getAnnotation(ArSequence.class) != null;
                 // build handler class dynamically and instantiate it
                 Class<?> classHandler = buildHandler(controller.getClass(), m).finish();
                 Object handler = classHandler.getDeclaredConstructor(controller.getClass()).newInstance(controller);
-                return new ArHttpRoute(functionName, method, path, (ArHttpHandler) handler);
+                return new ArHttpRoute(functionName, method, path, (ArHttpHandler) handler, isSequence);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | ArTypeAnnotationNotFoundException|
                      NoSuchMethodException e) {
                 throw new RuntimeException(e);

@@ -4,7 +4,12 @@ import pt.isel.autorouter.ArVerb.*
 import pt.isel.autorouter.annotations.ArBody
 import pt.isel.autorouter.annotations.ArQuery
 import pt.isel.autorouter.annotations.ArRoute
+import pt.isel.autorouter.annotations.ArSequence
 import pt.isel.autorouter.annotations.AutoRouter
+import pt.isel.watch.watchNewFilesContent
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 
 class ClassroomController {
@@ -81,5 +86,21 @@ class ClassroomController {
         val s = stds.firstOrNull { it.nr == nr } ?: return Optional.empty()
         repo[classroom] = stds.filter { it.nr != nr }
         return Optional.of(s)
+    }
+
+    /**
+     * Example:
+     *   http://localhost:3000/watch
+     */
+    @Synchronized
+    @AutoRouter("/watch", method = GET)
+    @ArSequence
+    fun watch(): Optional<Sequence<Sequence<String>>> {
+        val dir: Path = Files.createDirectory(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir"))
+        val file1: Path = Files.createFile(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir/file1.txt"))
+        val file2: Path = Files.createFile(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir/file2.txt"))
+        val file3: Path = Files.createFile(Paths.get("src/test/kotlin/pt/isel/watchTests/jsonDir/file3.txt"))
+        print("Created files: $file1, $file2, $file3")
+        return Optional.of(dir.watchNewFilesContent())
     }
 }
