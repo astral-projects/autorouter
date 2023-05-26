@@ -1,4 +1,7 @@
+package pt.isel.watchTests
+
 import org.junit.jupiter.api.*
+import pt.isel.watch.watchNewFilesContent
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -23,7 +26,7 @@ class WatchNewFilesContentTest {
     @BeforeEach
     fun setup() {
         val directoryName = "watchable-dir"
-        dir = Files.createDirectory(Paths.get("src/test/kotlin/$directoryName"))
+        dir = Files.createDirectory(Paths.get("src/test/kotlin/pt/isel/watchTests/$directoryName"))
         fileA = Files.createFile(dir.resolve("A.txt"))
         fileB = Files.createFile(dir.resolve("B.txt"))
         students = Files.createFile(dir.resolve("students.txt"))
@@ -45,7 +48,9 @@ class WatchNewFilesContentTest {
     // try-out-tests
     // @Test
     fun `Watch a directory lazily`() {
-        for (fileContent in dir.watchNewFilesContent()) {
+        val directoryName = "watchable-dir2"
+        val dir2 = Paths.get("src/test/kotlin/pt/isel/watchTests/$directoryName")
+        for (fileContent in dir2.watchNewFilesContent()) {
             for (line in fileContent) {
                 println(line)
             }
