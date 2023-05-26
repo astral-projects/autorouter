@@ -7,7 +7,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
-import kotlin.io.path.appendText
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -48,6 +47,7 @@ class WatchNewFilesContentTest {
 
     // try-out-tests
     // @Test
+    /*
     fun `Watch a directory lazily`() {
         val directoryName = "watchable-dir2"
         val dir2 = Paths.get("src/test/kotlin/pt/isel/watchTests/$directoryName")
@@ -56,7 +56,7 @@ class WatchNewFilesContentTest {
                 println(line)
             }
         }
-    }
+    }*/
 
     @Test
     fun `Watch a directory eagerly`() {
@@ -141,28 +141,29 @@ class WatchNewFilesContentTest {
     @Test
     fun `Watch a directory lazily concurrently with one file modified , writting before the sequence is executted and writting after the execute `() {
         val sequence= dir.watchNewFilesContent()
-        fileA.writeText(defaultTextA)
         val latch = CountDownLatch(1)
         lateinit var lines: Sequence<String>
         val threadWatchFile = thread {
             // signal that threadWatchFile is ready to watch
             latch.countDown()
             // start watching and blocking until new file created or modified
+            //while (true){
             lines = sequence.iterator().next()
         }
         // wait for threadWatchFile start watching
         latch.await()
+
         // ensure that threadWatchFile is watching before write to file
         Thread.sleep(2000)
+        fileA.writeText(defaultTextA)
         fileA.writeText(defaultTextB)
         // write to file
-        fileA.appendText(defaultTextC)
+        fileA.writeText(defaultTextC)
         threadWatchFile.join()
-        // A-Assertions
+
         val iter = lines.iterator()
         assertTrue { iter.hasNext() }
         assertEquals(defaultTextC, iter.next())
         assertFalse { iter.hasNext() }
-
         }
 }
