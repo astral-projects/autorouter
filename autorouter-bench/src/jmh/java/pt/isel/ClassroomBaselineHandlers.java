@@ -18,12 +18,12 @@ import static java.lang.Integer.parseInt;
 public class ClassroomBaselineHandlers {
     public static Stream<ArHttpRoute> routes(ClassroomControllerEmpty router) {
         return Stream.of(
-                new ArHttpRoute("search", ArVerb.GET, "/classroom/{classroom}", new ArHttpHandler() {
+                new ArHttpRoute("search", ArVerb.GET, "/classroom/{classroom}", new ArHttpHandler()  {
                     @Override
                     public Optional<?> handle(Map<String, String> routeArgs, Map<String, String> queryArgs, Map<String, String> bodyArgs) {
                         return router.search(routeArgs.get("classroom"), queryArgs.get("student"));
                     }
-                }
+                },Boolean.FALSE
                 ),
                 new ArHttpRoute("addStudent", ArVerb.PUT, "/classroom/{classroom}/students/{nr}", new ArHttpHandler() {
                     @Override
@@ -38,7 +38,7 @@ public class ClassroomBaselineHandlers {
                                     parseInt(bodyArgs.get("group")),
                                     parseInt(bodyArgs.get("semester"))));
                     }
-                }
+                },Boolean.FALSE
                 ),
                 new ArHttpRoute("removeStudent", ArVerb.DELETE, "/classroom/{classroom}/students/{nr}", new ArHttpHandler() {
                     @Override
@@ -47,7 +47,7 @@ public class ClassroomBaselineHandlers {
                                 routeArgs.get("classroom"),
                                 parseInt(routeArgs.get("nr")));
                     }
-                }
+                },Boolean.FALSE
                 )
         );
     }
@@ -59,7 +59,7 @@ public class ClassroomBaselineHandlers {
                     public Optional<?> handle(Map<String, String> routeArgs, Map<String, String> queryArgs, Map<String, String> bodyArgs) {
                         return router.search(routeArgs.get("classroom"), queryArgs.get("student"));
                     }
-                }
+                },Boolean.FALSE
                 ),
                 new ArHttpRoute("addStudent", ArVerb.PUT, "/classroom/{classroom}/students/{nr}", new ArHttpHandler() {
                     @Override
@@ -74,7 +74,7 @@ public class ClassroomBaselineHandlers {
                                     parseInt(bodyArgs.get("group")),
                                     parseInt(bodyArgs.get("semester"))));
                     }
-                }
+                },Boolean.FALSE
                 ),
                 new ArHttpRoute("removeStudent", ArVerb.DELETE, "/classroom/{classroom}/students/{nr}", new ArHttpHandler() {
                     @Override
@@ -83,7 +83,7 @@ public class ClassroomBaselineHandlers {
                                 routeArgs.get("classroom"),
                                 parseInt(routeArgs.get("nr")));
                     }
-                }
+                },Boolean.FALSE
                 )
         );
     }
