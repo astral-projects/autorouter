@@ -150,3 +150,16 @@ and represents the performance loss or gain of the current approach compared to 
 
 The results show
 the **dynamic code** generation approach is **much faster** than the reflection approach in all methods of a given domain.
+
+#### Authors
+
+- Diogo Rodrigues - 49513
+- Tiago Frazão - 48666
+- Francisco Engenheiro - 49428
+
+---
+
+Instituto Superior de Engenharia de Lisboa<br>
+BSc in Computer Science and Engineering<br>
+Languages and Managed Runtimes<br>
+Summer Semester of 2022/2023
