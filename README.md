@@ -1,12 +1,6 @@
-# autorouter
+# Autorouter
 
 Automatic HTTP handlers for a controller object with specific annotations.
-
-## Assignments
-
-1. Published 1-3-2023 DEADLINE: 03-4-2023
-1. Published 1-3-2023 DEADLINE: 08-5-2023
-1. Published 05-5-2023 DEADLINE: 29-5-2023
 
 ## Assignment 1 - Types at runtime and Reflection API
 
@@ -35,14 +29,14 @@ for your controller class are correctly invoked for each HTTP request.
 
 The next figure shows the resulting stream of
 [`ArHttpRoute`](autorouter/src/main/java/pt/isel/autorouter/ArHttpRoute.java) objects
-for the example of a [`ClassroomRouter` instance](#classroomrouter-example).
-The `autorouterReflect` can be use in Kotlin through a statement such as:
+for the example of a [`ClassroomRouter` instance](#classroomController-example).
+The `autorouterReflect` can be used in Kotlin through a statement such as:
 
 ```kotlin
 ClassroomRouter().autorouterReflect().jsonServer().start(4000)
 ```
 
-<img src="handlers-for-classroom-router.png">
+![Handlers for ClassroomRouter](docs/imgs/handlers-for-classroom-router.png)
 
 #### ClassroomController example
 
@@ -54,7 +48,7 @@ class ClassroomController {
     @Synchronized
     @AutoRoute("/classroom/{classroom}")
     fun search(@ArRoute classroom: String, @ArQuery student: String?): Optional<List<Student>> {
-        ...
+        // ...
     }
     /**
      * Example:
@@ -70,7 +64,7 @@ class ClassroomController {
         @ArRoute nr: Int,
         @ArBody s: Student
     ): Optional<Student> {
-        ...
+        // ...
     }
     /**
      * Example:
@@ -79,14 +73,14 @@ class ClassroomController {
     @Synchronized
     @AutoRoute("/classroom/{classroom}/students/{nr}", method = DELETE)
     fun removeStudent(@ArRoute classroom: String, @ArRoute nr: Int) : Optional<Student> {
-        ...
+        // ...
     }
 }
 ```
 
 ## Assignment 2 - Dynamic Code Generator and Performance Evaluation with JMH
 
-In this workout we follow a different approach to invoke the functions of a controller object.
+In this assignment, we follow a different approach to invoke the functions of a controller object.
 Instead of using Reflection we will generate different implementations of `ArHttpHandler`
 for each function in controller object, as denoted in the next figure.
 Notice, these implementations (e.g. `ArHttpHandlerSearch`, `ArHttpHandlerAddStudent`, `ArHttpHandlerRemoveStudent`)
@@ -96,9 +90,11 @@ Implement the Java function `Stream<ArHttpRoute> autorouterDynamic(Object contro
 a stream of [`ArHttpRoute`](autorouter/src/main/java/pt/isel/autorouter/ArHttpRoute.java)
 objects for each eligible method in given `controller` object parameter.
 
-<img src="dynamic-handlers-for-classroom-router.png">
+![Dynamic handlers for ClassroomRouter](docs/imgs/dynamic-handlers-for-classroom-router.png)
 
-## Usage
+## Benchmarking
+
+### Usage
 
 To run these benchmarks on you local machine just run:
 
@@ -119,9 +115,10 @@ java -jar autorouter-bench/build/libs/autorouter-bench-jmh.jar -i 4 -wi 4 -f 1 -
 * `-w`  2 run each warmup iteration for 2 seconds.
 
 ### Results
-| ![Benchmark results](jmh-benchmark-results.jpg) |
-|:-----------------------------------------------:|
-|       *Autorouter JMH BenchMark Results*        |
+
+| ![Benchmark results](docs/imgs/jmh-benchmark-results.jpg) |
+|:---------------------------------------------------------:|
+|            *Autorouter JMH BenchMark Results*             |
 
 Below are the results of the benchmark for the different domains and approaches,
 regarding the performance of each method compared to the baseline approach.
