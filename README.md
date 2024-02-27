@@ -160,6 +160,6 @@ the **dynamic code** generation approach is **much faster** than the reflection 
 ---
 
 Instituto Superior de Engenharia de Lisboa<br>
-BSc in Computer Science and Engineering<br>
+BSC in Computer Science and Engineering<br>
 Languages and Managed Runtimes<br>
 Summer Semester of 2022/2023
